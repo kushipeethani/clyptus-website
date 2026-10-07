@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Zap } from 'lucide-react';
 
 interface CinematicIntroProps {
   onComplete: () => void;
@@ -66,15 +65,13 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({
       <div 
         className={`relative z-10 flex flex-col items-center text-center px-6 max-w-xl transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${zoomClass}`}
       >
-        {/* Clyptus Icon & Logo Header with Pulsing Glow */}
-        <div className="flex items-center gap-4 group">
-          <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-600 flex items-center justify-center text-white font-black shadow-[0_10px_30px_rgba(2,132,199,0.35)] transition-transform duration-700 hover:scale-110">
-            <Zap className="w-8 h-8 fill-current animate-pulse" />
-          </div>
-
-          <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-slate-900 drop-shadow-sm">
-            CLYPTUS<span className="text-sky-600 inline-block animate-pulse">.</span>
-          </h1>
+        {/* Clyptus Logo with Pulsing Glow */}
+        <div className="flex items-center justify-center group">
+          <img
+            src="/logo.png"
+            alt="Clyptus Logo"
+            className="h-20 sm:h-24 max-w-full object-contain drop-shadow-[0_10px_30px_rgba(2,132,199,0.35)] transition-transform duration-700 hover:scale-105"
+          />
         </div>
 
         {/* Tagline Reveal */}

@@ -35,87 +35,75 @@ const metrics: MetricItem[] = [
 
 export const MetricsCounterSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollProgress, setScrollProgress] = useState<number>(0);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
   const [autoTime, setAutoTime] = useState<number>(0);
+  const [animProgress, setAnimProgress] = useState<number>(0);
 
-  // RAF loop for continuous 60 FPS auto-moving float wave
+  // RAF loop for subtle floating wave effect
   useEffect(() => {
     let animId: number;
     const updateAutoMove = () => {
-      setAutoTime(performance.now() * 0.0015);
+      setAutoTime(performance.now() * 0.002);
       animId = requestAnimationFrame(updateAutoMove);
     };
     animId = requestAnimationFrame(updateAutoMove);
     return () => cancelAnimationFrame(animId);
   }, []);
 
-  // RAF scroll sampling over 450vh pinned track
+  // Intersection Observer for instant 60 FPS count-up triggering
   useEffect(() => {
-    let ticking = false;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.2 }
+    );
 
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          if (containerRef.current) {
-            const rect = containerRef.current.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-            const totalDist = rect.height - viewportHeight;
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
 
-            if (totalDist > 0) {
-              const scrolled = -rect.top;
-              const p = Math.max(0, Math.min(1, scrolled / totalDist));
-              setScrollProgress(p);
-            }
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => observer.disconnect();
   }, []);
 
-  // Breakdown of scroll progress over 450vh pinned track:
-  // 0% -> 30%   : Initial Fade-In & Slide-In (0% -> 100%)
-  // 30% -> 50%  : Fully Visible Focus (100%)
-  // 50% -> 70%  : Hold Phase (100%)
-  // 70% -> 100% : Final Exit Fade-Out & Slide-Out (100% -> 0%)
+  // Smooth count-up animation lerp (1.0s liquid ease-out curve)
+  useEffect(() => {
+    if (isVisible) {
+      let startTime: number | null = null;
+      let frameId: number;
 
-  let slideInRatio = 1;
-  let slideOutRatio = 0;
+      const step = (timestamp: number) => {
+        if (!startTime) startTime = timestamp;
+        const elapsed = (timestamp - startTime) / 1000;
+        const duration = 1.0;
+        const progress = Math.min(1, elapsed / duration);
+        const eased = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+        setAnimProgress(eased);
 
-  if (scrollProgress < 0.30) {
-    slideInRatio = scrollProgress / 0.30;
-    slideOutRatio = 0;
-  } else if (scrollProgress >= 0.30 && scrollProgress <= 0.70) {
-    slideInRatio = 1;
-    slideOutRatio = 0;
-  } else {
-    slideInRatio = 1;
-    slideOutRatio = (scrollProgress - 0.70) / 0.30;
-  }
+        if (progress < 1) {
+          frameId = requestAnimationFrame(step);
+        }
+      };
+
+      frameId = requestAnimationFrame(step);
+      return () => cancelAnimationFrame(frameId);
+    }
+  }, [isVisible]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-[450vh] bg-white select-none border-y border-slate-100">
-      {/* Sticky Viewport Container */}
-      <div className="sticky top-0 w-full h-screen flex flex-col items-center justify-center overflow-hidden px-6 sm:px-12 lg:px-20">
-        
-        {/* Background Soft Glow Accents */}
-        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-blue-50/70 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-indigo-50/70 rounded-full blur-3xl pointer-events-none" />
+    /* Clean, tight responsive section without fade-in/fade-out opacity hiding or large scroll gaps */
+    <section ref={containerRef} className="w-full py-16 sm:py-24 bg-white select-none border-y border-slate-100 relative overflow-hidden">
+      {/* Background Soft Ambient Glow Accents */}
+      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-blue-50/70 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-indigo-50/70 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Section Header */}
-        <div 
-          className="text-center mb-10 z-10 transition-opacity duration-300"
-          style={{
-            opacity: Math.max(0, slideInRatio - slideOutRatio * 1.2),
-          }}
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-[11px] font-mono tracking-widest text-sky-700 font-bold uppercase mb-3 shadow-xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+      <div className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 relative z-10 flex flex-col items-center">
+        {/* Section Header (Always 100% visible - No fade-in/fade-out) */}
+        <div className="text-center mb-10 sm:mb-14">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-50 border border-sky-200 text-[11px] font-mono tracking-widest text-sky-700 font-bold uppercase mb-3 shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
             PROVEN PERFORMANCE METRICS
           </div>
           <h2 className="text-3xl sm:text-5xl font-black text-slate-950 uppercase tracking-tight leading-tight">
@@ -123,88 +111,44 @@ export const MetricsCounterSection: React.FC = () => {
           </h2>
         </div>
 
-        {/* 3 Metric Cards */}
-        <div className="max-w-6xl w-full mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10 relative z-10">
+        {/* 3 Metric Cards (Always 100% visible - No fade-in/fade-out) */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {metrics.map((metric, idx) => {
             const IconComp = metric.icon;
             
-            // Count up progress mapped smoothly to slideInRatio
-            const currentCount = Math.floor(slideInRatio * metric.targetValue);
+            // Count up number calculated with fast cubic ease-out animation curve
+            const currentCount = Math.floor(animProgress * metric.targetValue);
 
-            // Continuous auto-moving sine wave float offset for organic motion
-            const autoFloatY = Math.sin(autoTime + idx * 1.6) * 7;
+            // Subtle 60 FPS organic sine wave float offset
+            const autoFloatY = Math.sin(autoTime + idx * 1.5) * 6;
 
-            // Gradient colors matching reference images per card
+            // Reference gradient colors per card
             let numberGradientClass = 'from-sky-500 via-blue-600 to-indigo-600';
             let iconStyle = 'bg-sky-50 border-sky-200 text-sky-600 group-hover:bg-sky-600';
             
             if (idx === 1) {
-              // Card 2: Emerald Green to Teal gradient (matching GROWTH. reference image)
               numberGradientClass = 'from-emerald-500 via-teal-600 to-sky-500';
               iconStyle = 'bg-emerald-50 border-emerald-200 text-emerald-600 group-hover:bg-emerald-600';
             } else if (idx === 2) {
-              // Card 3: Electric Blue to Indigo Purple gradient (matching Solutions reference image)
               numberGradientClass = 'from-indigo-500 via-purple-600 to-sky-500';
               iconStyle = 'bg-indigo-50 border-indigo-200 text-indigo-600 group-hover:bg-indigo-600';
-            }
-
-            let transformStyle = '';
-            let opacity = 1.0;
-
-            if (slideOutRatio > 0) {
-              // FINAL EXIT FADE-OUT & SLIDE-OUT PHASE (70% -> 100%)
-              opacity = Math.max(0, 1.0 - slideOutRatio);
-              if (idx === 0) {
-                // Left Card: Gentle Slide OUT to Left (-100px) + auto-float
-                const translateX = -100 * slideOutRatio;
-                transformStyle = `translate3d(${translateX}px, ${autoFloatY}px, 0)`;
-              } else if (idx === 1) {
-                // Middle Card: Gentle Slide OUT upwards (-60px) + auto-float
-                const translateY = -60 * slideOutRatio + autoFloatY;
-                const scale = 1.0 - 0.10 * slideOutRatio;
-                transformStyle = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
-              } else {
-                // Right Card: Gentle Slide OUT to Right (+100px) + auto-float
-                const translateX = 100 * slideOutRatio;
-                transformStyle = `translate3d(${translateX}px, ${autoFloatY}px, 0)`;
-              }
-            } else {
-              // INITIAL FADE-IN & SLIDE-IN PHASE (0% -> 30%)
-              opacity = Math.max(0, slideInRatio);
-              if (idx === 0) {
-                // Left Card: Gentle Slide IN from Left (-100px -> 0px) + auto-float
-                const translateX = -100 * (1 - slideInRatio);
-                transformStyle = `translate3d(${translateX}px, ${autoFloatY}px, 0)`;
-              } else if (idx === 1) {
-                // Middle Card: Gentle Slide IN from Bottom (+60px -> 0px) + auto-float
-                const translateY = 60 * (1 - slideInRatio) + autoFloatY;
-                const scale = 0.90 + 0.10 * slideInRatio;
-                transformStyle = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
-              } else {
-                // Right Card: Gentle Slide IN from Right (+100px -> 0px) + auto-float
-                const translateX = 100 * (1 - slideInRatio);
-                transformStyle = `translate3d(${translateX}px, ${autoFloatY}px, 0)`;
-              }
             }
 
             return (
               <div
                 key={metric.id}
                 style={{
-                  transform: transformStyle,
-                  opacity,
-                  willChange: 'transform, opacity',
+                  transform: `translate3d(0, ${autoFloatY}px, 0)`,
+                  willChange: 'transform',
                 }}
-                className="flex flex-col items-center md:items-start text-center md:text-left p-6 sm:p-8 rounded-3xl bg-white/95 backdrop-blur-md border border-slate-200/80 shadow-[0_10px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_15px_35px_rgba(2,132,199,0.12)] hover:border-sky-300 transition-all duration-300 group"
+                className="flex flex-col items-center md:items-start text-center md:text-left p-6 sm:p-8 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_15px_35px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgba(2,132,199,0.15)] hover:border-sky-400 transition-all duration-300 group hover:-translate-y-1"
               >
-                {/* Header Row: Icon + Gradient Percentage Number */}
-                <div className="flex items-center gap-4 mb-4">
-                  {/* Icon Container Badge */}
-                  <div className={`w-14 h-14 rounded-full border flex items-center justify-center group-hover:text-white group-hover:scale-110 transition-all duration-300 shadow-xs ${iconStyle}`}>
+                {/* Header Row: Icon + Animated Gradient Percentage */}
+                <div className="flex items-center gap-4 mb-5">
+                  <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center group-hover:text-white group-hover:scale-110 transition-all duration-300 shadow-xs ${iconStyle}`}>
                     <IconComp className="w-7 h-7 stroke-[1.75]" />
                   </div>
 
-                  {/* Animated Percentage Number with Reference Gradient Colors */}
                   <div className="flex items-baseline">
                     <span className={`text-5xl sm:text-6xl font-black tracking-tight font-mono bg-gradient-to-r ${numberGradientClass} bg-clip-text text-transparent drop-shadow-xs`}>
                       {currentCount}
@@ -226,6 +170,6 @@ export const MetricsCounterSection: React.FC = () => {
           })}
         </div>
       </div>
-    </div>
+    </section>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { SliderCard, SpiralConfig } from '../data/sliderData';
-import { Sliders, RotateCw, Eye, EyeOff, Image as ImageIcon, Plus, Trash2, Settings } from 'lucide-react';
+import { RotateCw, Eye, EyeOff, Image as ImageIcon, Plus, Trash2, Settings } from 'lucide-react';
 
 interface StudioCustomizerProps {
   config: SpiralConfig;
@@ -63,19 +63,10 @@ export const StudioCustomizer: React.FC<StudioCustomizerProps> = ({
     onUpdateCards([...cards, newCard]);
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${isOpen ? 'w-96' : 'w-auto'}`}>
-      {/* Floating Toggle Pill Button */}
-      {!isOpen && (
-        <button
-          onClick={onToggleOpen}
-          className="flex items-center gap-2 px-4 py-3 rounded-full bg-white/95 border border-sky-400 text-sky-700 hover:bg-sky-600 hover:text-white font-semibold text-sm shadow-xl backdrop-blur-xl transition-all group"
-        >
-          <Sliders className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-          <span>Helix Studio Controls</span>
-          <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
-        </button>
-      )}
+    <div className="fixed bottom-6 right-6 z-50 transition-all duration-300 w-96">
 
       {/* Expanded Controls Drawer */}
       {isOpen && (

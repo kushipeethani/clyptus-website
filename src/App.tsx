@@ -10,7 +10,10 @@ import { CinematicIntro } from './components/CinematicIntro';
 import { AiImpactSection } from './components/AiImpactSection';
 import { MetricsCounterSection } from './components/MetricsCounterSection';
 import { ContactSection } from './components/ContactSection';
+import { SapServicesPage } from './components/SapServicesPage';
 import { RisingSlideCardsSection } from './components/RisingSlideCardsSection';
+import { Services3dOrbUniverse } from './components/Services3dOrbUniverse';
+import { ServicesBottomLeftWidget } from './components/ServicesBottomLeftWidget';
 
 export function App() {
   const [showIntro, setShowIntro] = useState<boolean>(true);
@@ -19,8 +22,10 @@ export function App() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [config, setConfig] = useState<SpiralConfig>(DEFAULT_SPIRAL_CONFIG);
   const [isCustomizerOpen, setIsCustomizerOpen] = useState<boolean>(false);
+  const [is3dServicesOpen, setIs3dServicesOpen] = useState<boolean>(false);
   const [selectedCard, setSelectedCard] = useState<SliderCard | null>(null);
   const [codeModalCard, setCodeModalCard] = useState<SliderCard | null>(null);
+
   // Filter cards by search term
   const filteredCards = useMemo(() => {
     return cards.filter((card) => {
@@ -47,10 +52,14 @@ export function App() {
         activePage={currentPage}
         onNavigate={(page) => {
           setCurrentPage(page);
+          if (page === 'Services') {
+            setIs3dServicesOpen(true);
+          }
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onToggleCustomizer={() => setIsCustomizerOpen(!isCustomizerOpen)}
         onPlayIntro={() => setShowIntro(true)}
+        onOpen3dServices={() => setIs3dServicesOpen(true)}
       />
 
       {/* Conditional Page Views */}
@@ -59,16 +68,19 @@ export function App() {
         <main className="w-full flex-1 flex flex-col items-center">
           <ContactSection />
         </main>
+      ) : currentPage === 'SAP' ? (
+        /* DEDICATED SAP SERVICES PAGE */
+        <main className="w-full flex-1 flex flex-col items-center">
+          <SapServicesPage onNavigateContact={() => {
+            setCurrentPage('Contact');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }} />
+        </main>
       ) : (
         /* MAIN HOME PAGE & 3D SPIRAL STAGE */
         <main className="w-full flex-1 flex flex-col items-center">
           {/* Title Hero Banner */}
-          <div className="pt-8 pb-2 px-4 text-center flex flex-col items-center gap-3 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white border border-slate-200 text-xs font-mono text-slate-600 shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
-              <span>CLYPTUS COMPONENT #C-SPIRAL-SLIDER</span>
-            </div>
-
+          <div className="pt-8 pb-4 px-4 text-center flex flex-col items-center gap-3 max-w-3xl">
             <h1 className="text-4xl sm:text-6xl font-black text-slate-900 tracking-tight leading-[1.05]">
               AI Powered <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600">Solutions</span> That Change Your Business
             </h1>
@@ -102,10 +114,33 @@ export function App() {
           {/* AI Scroll-Driven Zoom Typography Section ("AI IS CHANGING HOW WE WORK.") */}
           <AiImpactSection />
 
-          {/* 5 Feature Cards Animated Section (Right-Bottom -> Up -> Slide Left) */}
+          {/* 5 Feature Cards Animated Section + Curtain Reveal 3D Timeline */}
           <RisingSlideCardsSection />
         </main>
       )}
+
+      {/* Bottom Left White Circular Services Widget */}
+      <ServicesBottomLeftWidget
+        onSelectService={(serviceId) => {
+          if (serviceId === 'sap') {
+            setCurrentPage('SAP');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }}
+      />
+
+      {/* 3D Services Universe Full-Screen Cinematic Modal */}
+      <Services3dOrbUniverse
+        isOpen={is3dServicesOpen}
+        onClose={() => setIs3dServicesOpen(false)}
+        onSelectService={(serviceId) => {
+          if (serviceId === 'sap') {
+            setIs3dServicesOpen(false);
+            setCurrentPage('SAP');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }}
+      />
 
       {/* Footer */}
       <footer className="w-full border-t border-slate-200 bg-white py-8 px-4 text-center text-xs text-slate-500 flex flex-col items-center gap-2 shadow-inner">

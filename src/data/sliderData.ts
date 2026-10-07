@@ -154,11 +154,11 @@ export interface SpiralConfig {
 }
 
 export const DEFAULT_SPIRAL_CONFIG: SpiralConfig = {
-  radius: 229,
-  pitch: 61,
-  tightness: 1.4,
-  tiltAngle: 1,
-  perspective: 1200,
+  radius: 194,
+  pitch: 63,
+  tightness: 1.3,
+  tiltAngle: -1,
+  perspective: 1150,
   glassBlur: 10,
   aspectRatio: 'portrait',
   theme: 'tide',

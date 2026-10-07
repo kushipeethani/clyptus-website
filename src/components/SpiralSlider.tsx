@@ -168,8 +168,8 @@ export const SpiralSlider: React.FC<SpiralSliderProps> = ({
   const angleStep = (2 * Math.PI * config.tightness) / numCards;
 
   return (
-    /* Outer Scroll-Pinning Track (380vh creates generous smooth scroll distance) */
-    <div ref={trackRef} className="relative w-full h-[380vh]">
+    /* Outer Scroll-Pinning Track (220vh creates smooth scroll distance without excessive gap) */
+    <div ref={trackRef} className="relative w-full h-[220vh]">
       {/* Sticky Viewport Stage */}
       <div className="sticky top-0 w-full h-screen flex flex-col items-center justify-center overflow-hidden select-none">
         

@@ -165,25 +165,25 @@ export const AiImpactSection: React.FC = () => {
     };
   }, []);
 
-  // Stage 1: "SMART IT SERVICES TO ELEVATE YOUR BUSINESS SUCCESS." (progress 0.0 -> 0.46)
-  const stage1Scale = 1.0 + Math.pow(Math.min(1, progress / 0.45), 1.2) * 0.6;
-  const stage1Opacity = progress < 0.32 
+  // Stage 1: "SMART IT SERVICES TO ELEVATE YOUR BUSINESS SUCCESS." (progress 0.0 -> 0.42)
+  const stage1Scale = 1.0 + Math.pow(Math.min(1, progress / 0.40), 1.2) * 0.25;
+  const stage1Opacity = progress < 0.28 
     ? 1.0 
-    : progress < 0.46 
-      ? Math.max(0, 1.0 - (progress - 0.32) / 0.14) 
+    : progress < 0.42 
+      ? Math.max(0, 1.0 - (progress - 0.28) / 0.14) 
       : 0.0;
-  const stage1Blur = progress > 0.32 ? (progress - 0.32) * 12 : 0;
+  const stage1Blur = progress > 0.28 ? (progress - 0.28) * 8 : 0;
 
-  // Stage 2: "NO DEMOS. NO DECKS. ADAPTIVE DESIGN AND CONTENT STRATEGY." (progress 0.54 -> 1.0)
-  const stage2Opacity = progress < 0.54 
+  // Stage 2: "NO DEMOS. NO DECKS. ADAPTIVE DESIGN AND CONTENT STRATEGY." (progress 0.42 -> 1.0)
+  const stage2Opacity = progress < 0.42 
     ? 0.0 
-    : progress < 0.70 
-      ? (progress - 0.54) / 0.16 
-      : progress < 0.92 
+    : progress < 0.58 
+      ? (progress - 0.42) / 0.16 
+      : progress < 0.88 
         ? 1.0 
-        : Math.max(0, 1.0 - (progress - 0.92) / 0.08);
+        : Math.max(0, 1.0 - (progress - 0.88) / 0.12);
   
-  const stage2Scale = 0.95 + (Math.max(0, progress - 0.54) / 0.46) * 0.12;
+  const stage2Scale = 0.98 + (Math.max(0, progress - 0.42) / 0.58) * 0.10;
 
   // Floating network labels
   const labels = [
@@ -195,7 +195,7 @@ export const AiImpactSection: React.FC = () => {
   ];
 
   return (
-    <div ref={containerRef} className="relative w-full h-[800vh] bg-[#f4f3ef]">
+    <div ref={containerRef} className="relative w-full h-[280vh] bg-[#f4f3ef]">
       {/* Sticky Viewport Container */}
       <div className="sticky top-0 w-full h-screen flex flex-col items-center justify-center overflow-hidden select-none">
         
@@ -285,16 +285,6 @@ export const AiImpactSection: React.FC = () => {
           </div>
         )}
 
-        {/* Scroll Hint Pill */}
-        <div 
-          className="absolute bottom-8 z-20 flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/10 border border-slate-900/15 text-[11px] font-mono text-slate-700 tracking-wider font-semibold pointer-events-none transition-opacity duration-300"
-          style={{
-            opacity: Math.max(0, 1 - progress * 2.5),
-          }}
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
-          <span>SCROLL DOWN TO ANIMATE</span>
-        </div>
       </div>
     </div>
   );
