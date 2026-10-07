@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { AiGalaxyParticleSection } from './AiGalaxyParticleSection';
 import { 
   BarChart3, 
   Workflow, 
@@ -750,6 +751,11 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
           </div>
         </div>
       </section>
+
+      {/* ---------------------------------------------------- */}
+      {/* MONOCHROME 4K MINIMALIST SPIRAL GALAXY GRAPHIC      */}
+      {/* ---------------------------------------------------- */}
+      <AiGalaxyParticleSection />
 
     </div>
   );
