@@ -4,7 +4,6 @@ import {
   Workflow, 
   Database, 
   ArrowRight, 
-  ChevronDown, 
   CheckCircle2, 
   BrainCircuit 
 } from 'lucide-react';
@@ -15,7 +14,6 @@ interface AiServicesPageProps {
 
 export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContact }) => {
   const [activeServiceTab, setActiveServiceTab] = useState<number>(0);
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const flowSectionRef = useRef<HTMLDivElement>(null);
   const heroSectionRef = useRef<HTMLDivElement>(null);
@@ -121,20 +119,20 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
   // FAQ Items
   const faqList = [
     {
-      question: 'How does Clyptus integrate AI with our existing SAP system?',
-      answer: 'We connect custom LLM agents and machine learning pipelines directly to SAP S/4HANA via secure BTP APIs and enterprise connectors without altering core ERP stability.',
+      question: 'Do you build AI from scratch or use existing platforms?',
+      answer: 'Both. Where a proven analytics or automation platform solves the problem we configure it, because it is faster and cheaper. Where nothing fits, we build.',
     },
     {
-      question: 'Will AI automation disrupt our operational workflows?',
-      answer: 'No. Our implementation follows a non-invasive staged deployment model, validating data handling and human-in-the-loop approvals before full workflow automation.',
+      question: 'Can you work with our SAP or ERP data?',
+      answer: 'Yes, and that is usually the starting point. Our consultants know the underlying ERP data model, so the analysis reflects how the business actually runs.',
     },
     {
-      question: 'What data is required to get started with predictive analytics?',
-      answer: 'We leverage your existing transactional ERP history (finance, sales, inventory) combined with operational logs to train high-accuracy domain-specific models.',
+      question: 'What does a first engagement look like?',
+      answer: 'A short discovery on a single use case with a defined output at the end, so you can judge the value before committing to a larger programme.',
     },
     {
-      question: 'How do you ensure enterprise data security and compliance?',
-      answer: 'All models operate within your dedicated cloud tenant with zero-retention private endpoints, ensuring strict zero-trust security and GDPR compliance.',
+      question: 'How do you handle our data and confidentiality?',
+      answer: 'Work is done under NDA, with access limited to the named project team and data handled according to the terms agreed in the contract.',
     },
   ];
 
@@ -499,9 +497,9 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
 
 
       {/* ---------------------------------------------------- */}
-      {/* FREQUENTLY ASKED QUESTIONS                           */}
+      {/* FREQUENTLY ASKED QUESTIONS (2x2 GRID AS REQUESTED)  */}
       {/* ---------------------------------------------------- */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-4xl mx-auto">
+      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-6xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
             CLEAR ANSWERS
@@ -511,34 +509,22 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
           </h2>
         </div>
 
-        <div className="space-y-4">
-          {faqList.map((faq, idx) => {
-            const isOpen = openFaqIndex === idx;
-            return (
-              <div
-                key={idx}
-                className="rounded-2xl bg-white border border-slate-200/90 overflow-hidden shadow-xs transition-all"
-              >
-                <button
-                  onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                  className="w-full p-6 text-left flex items-center justify-between gap-4 focus:outline-none"
-                >
-                  <span className="text-base sm:text-lg font-extrabold text-slate-900">
-                    {faq.question}
-                  </span>
-                  <div className={`w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 transition-transform duration-300 shrink-0 ${isOpen ? 'rotate-180 bg-sky-600 text-white' : ''}`}>
-                    <ChevronDown className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                </button>
-
-                {isOpen && (
-                  <div className="px-6 pb-6 pt-0 text-sm text-slate-600 leading-relaxed font-medium animate-in fade-in duration-200 border-t border-slate-100 pt-4">
-                    {faq.answer}
-                  </div>
-                )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {faqList.map((faq, idx) => (
+            <div
+              key={idx}
+              className="p-8 rounded-2xl bg-sky-50/40 border border-sky-100/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+            >
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 tracking-tight mb-4">
+                  {faq.question}
+                </h3>
+                <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                  {faq.answer}
+                </p>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </section>
 
