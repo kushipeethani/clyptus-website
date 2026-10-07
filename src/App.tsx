@@ -11,6 +11,7 @@ import { AiImpactSection } from './components/AiImpactSection';
 import { MetricsCounterSection } from './components/MetricsCounterSection';
 import { ContactSection } from './components/ContactSection';
 import { SapServicesPage } from './components/SapServicesPage';
+import { AiServicesPage } from './components/AiServicesPage';
 import { RisingSlideCardsSection } from './components/RisingSlideCardsSection';
 import { Services3dOrbUniverse } from './components/Services3dOrbUniverse';
 import { ServicesBottomLeftWidget } from './components/ServicesBottomLeftWidget';
@@ -76,6 +77,14 @@ export function App() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }} />
         </main>
+      ) : currentPage === 'AI' ? (
+        /* DEDICATED AI SERVICES PAGE */
+        <main className="w-full flex-1 flex flex-col items-center">
+          <AiServicesPage onNavigateContact={() => {
+            setCurrentPage('Contact');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }} />
+        </main>
       ) : (
         /* MAIN HOME PAGE & 3D SPIRAL STAGE */
         <main className="w-full flex-1 flex flex-col items-center">
@@ -125,6 +134,9 @@ export function App() {
           if (serviceId === 'sap') {
             setCurrentPage('SAP');
             window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else if (serviceId === 'ai') {
+            setCurrentPage('AI');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }
         }}
       />
@@ -137,6 +149,10 @@ export function App() {
           if (serviceId === 'sap') {
             setIs3dServicesOpen(false);
             setCurrentPage('SAP');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else if (serviceId === 'ai') {
+            setIs3dServicesOpen(false);
+            setCurrentPage('AI');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }
         }}
