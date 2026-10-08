@@ -511,35 +511,6 @@ export const SapServicesPage: React.FC<SapServicesPageProps> = ({ onNavigateCont
             );
           })}
         </div>
-      </section>
-
-
-      {/* ---------------------------------------------------- */}
-      {/* FINAL CTA (HOME PAGE THEME)                          */}
-      {/* ---------------------------------------------------- */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-6xl mx-auto select-none">
-        <div className="relative rounded-3xl p-10 sm:p-16 bg-gradient-to-br from-sky-500/10 via-indigo-500/5 to-purple-500/10 border border-sky-200/80 text-center shadow-xl overflow-hidden">
-          <div className="absolute top-0 right-1/3 w-[300px] h-[300px] bg-sky-400/20 rounded-full blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-0 left-1/3 w-[300px] h-[300px] bg-purple-400/20 rounded-full blur-[100px] pointer-events-none" />
-
-          <div className="max-w-3xl mx-auto relative z-10">
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 mb-6">
-              Ready to move forward with SAP?
-            </h2>
-            <p className="text-base sm:text-lg text-slate-600 font-medium leading-relaxed mb-10 max-w-2xl mx-auto">
-              Talk to the Clyptus SAP team about your roadmap, implementation, conversion or support requirements.
-            </p>
-
-            <button
-              onClick={handleContactClick}
-              className="group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-400 text-slate-950 font-black text-sm uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all duration-300"
-            >
-              <span>Get SAP Consultation →</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-    </div>
+      </section>    </div>
   );
 };

@@ -1,4 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Database, Users, Sparkles, ArrowUpRight } from 'lucide-react';
+
+interface AiImpactSectionProps {
+  onSelectService?: (serviceId: string) => void;
+}
 
 // Character component that renders individual letters with organic giggle / jiggle animation
 const GiggleText: React.FC<{ text: string; baseDelay?: number; className?: string }> = ({
@@ -30,7 +35,7 @@ const GiggleText: React.FC<{ text: string; baseDelay?: number; className?: strin
   );
 };
 
-export const AiImpactSection: React.FC = () => {
+export const AiImpactSection: React.FC<AiImpactSectionProps> = ({ onSelectService }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [progress, setProgress] = useState<number>(0);
@@ -195,7 +200,7 @@ export const AiImpactSection: React.FC = () => {
   ];
 
   return (
-    <div ref={containerRef} className="relative w-full h-[280vh] bg-[#f4f3ef]">
+    <div ref={containerRef} className="relative w-full h-[280vh] bg-slate-50">
       {/* Sticky Viewport Container */}
       <div className="sticky top-0 w-full h-screen flex flex-col items-center justify-center overflow-hidden select-none">
         
@@ -254,32 +259,91 @@ export const AiImpactSection: React.FC = () => {
           </div>
         )}
 
-        {/* STAGE 2: Second Hero Typography ("NO DEMOS. NO DECKS. ADAPTIVE DESIGN AND CONTENT STRATEGY.") */}
+        {/* STAGE 2: 3 Core Service Cards (SAP, IT Recruiting, AI) replacing Adaptive Design */}
         {stage2Opacity > 0 && (
           <div
-            className="absolute z-10 flex flex-col items-center justify-center text-center px-4 w-full max-w-5xl transition-transform duration-75 ease-out"
+            className="absolute z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 w-full max-w-6xl transition-all duration-75 ease-out pointer-events-auto"
             style={{
               transform: `scale3d(${stage2Scale}, ${stage2Scale}, 1)`,
               opacity: stage2Opacity,
               willChange: 'transform, opacity',
             }}
           >
-            {/* Tagline */}
-            <div className="font-mono text-xs sm:text-sm tracking-[0.35em] text-slate-500 font-bold uppercase mb-4">
-              NO DEMOS. NO DECKS.
-            </div>
-
-            {/* Main Headline with Giggle Effect */}
-            <div className="flex flex-col items-center justify-center leading-[0.9] tracking-tight uppercase font-black text-slate-950 text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5.5rem]">
-              {/* Line 1: ADAPTIVE DESIGN */}
-              <div className="text-slate-950 font-black">
-                <GiggleText text="ADAPTIVE DESIGN" baseDelay={0.2} />
+            {/* 3 Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
+              {/* Card 1: SAP */}
+              <div 
+                onClick={() => onSelectService?.('sap')}
+                className="group relative p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-md hover:shadow-xl hover:border-blue-500/40 hover:-translate-y-2 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center mb-6 shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                    <Database className="w-7 h-7" />
+                  </div>
+                  <span className="text-[11px] font-mono font-extrabold text-blue-600 uppercase tracking-wider block mb-2">
+                    ENTERPRISE ERP
+                  </span>
+                  <h3 className="text-2xl font-black text-slate-900 mb-3 group-hover:text-blue-600 transition-colors">
+                    SAP Solutions
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed font-medium mb-6">
+                    S/4HANA migration, custom ABAP & Fiori engineering, and full-spectrum SAP ecosystem transformation.
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors pt-4 border-t border-slate-100">
+                  <span>EXPLORE SAP SERVICES</span>
+                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </div>
               </div>
 
-              {/* Line 2: AND CONTENT STRATEGY. */}
-              <div className="font-black my-1">
-                <GiggleText text="AND CONTENT " baseDelay={0.6} className="text-slate-950" />
-                <GiggleText text="STRATEGY." baseDelay={1.0} className="text-[#2563eb]" />
+              {/* Card 2: IT Recruiting */}
+              <div 
+                onClick={() => onSelectService?.('recruiting')}
+                className="group relative p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-md hover:shadow-xl hover:border-indigo-500/40 hover:-translate-y-2 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mb-6 shadow-md shadow-indigo-500/20 group-hover:scale-110 transition-transform">
+                    <Users className="w-7 h-7" />
+                  </div>
+                  <span className="text-[11px] font-mono font-extrabold text-indigo-600 uppercase tracking-wider block mb-2">
+                    TALENT & STAFFING
+                  </span>
+                  <h3 className="text-2xl font-black text-slate-900 mb-3 group-hover:text-indigo-600 transition-colors">
+                    IT Recruiting
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed font-medium mb-6">
+                    Specialized tech recruitment, dedicated engineering pods, and executive technical leadership placement.
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors pt-4 border-t border-slate-100">
+                  <span>EXPLORE IT RECRUITING</span>
+                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </div>
+              </div>
+
+              {/* Card 3: AI */}
+              <div 
+                onClick={() => onSelectService?.('ai')}
+                className="group relative p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-md hover:shadow-xl hover:border-sky-500/40 hover:-translate-y-2 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-14 h-14 rounded-2xl bg-sky-500 text-white flex items-center justify-center mb-6 shadow-md shadow-sky-500/20 group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-7 h-7" />
+                  </div>
+                  <span className="text-[11px] font-mono font-extrabold text-sky-600 uppercase tracking-wider block mb-2">
+                    INTELLIGENT SYSTEMS
+                  </span>
+                  <h3 className="text-2xl font-black text-slate-900 mb-3 group-hover:text-sky-600 transition-colors">
+                    AI Solutions
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed font-medium mb-6">
+                    Autonomous AI agents, enterprise GenAI architectures, machine learning models & predictive analytics.
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-900 group-hover:text-sky-600 transition-colors pt-4 border-t border-slate-100">
+                  <span>EXPLORE AI SOLUTIONS</span>
+                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </div>
               </div>
             </div>
           </div>

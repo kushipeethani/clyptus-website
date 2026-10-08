@@ -16,6 +16,26 @@ interface RoadTimelineSectionProps {
   isFrozen?: boolean;
 }
 
+// Helper to smoothly decelerate and pause around each exact milestone screenshot position
+const applyMilestoneSlowing = (rawP: number): number => {
+  const milestones = [0.12, 0.28, 0.44, 0.62, 0.78];
+  let p = rawP;
+  
+  for (const m of milestones) {
+    const R = 0.055; // Window around exact screenshot position
+    const dist = rawP - m;
+    if (Math.abs(dist) < R) {
+      const t = dist / R; // range [-1, 1]
+      // Smooth S-curve compression: slows scrolling by ~60% right at the exact screenshot frame
+      const compressed = 0.4 * t + 0.6 * Math.pow(t, 3);
+      const shift = (compressed - t) * R;
+      p += shift;
+    }
+  }
+
+  return Math.max(0, Math.min(1, p));
+};
+
 export const RoadTimelineSection: React.FC<RoadTimelineSectionProps> = ({ externalProgress, isFrozen }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -32,7 +52,7 @@ export const RoadTimelineSection: React.FC<RoadTimelineSectionProps> = ({ extern
   useEffect(() => {
     externalProgressRef.current = externalProgress;
     if (externalProgress !== undefined && !isFrozenRef.current) {
-      targetProgressRef.current = Math.max(0, Math.min(1, externalProgress));
+      targetProgressRef.current = applyMilestoneSlowing(Math.max(0, Math.min(1, externalProgress)));
     }
   }, [externalProgress]);
 
@@ -147,32 +167,32 @@ export const RoadTimelineSection: React.FC<RoadTimelineSectionProps> = ({ extern
 
     function makeTextSprite(title: string, subtitle: string) {
       const c = document.createElement('canvas');
-      c.width = 512;
+      c.width = 768;
       const subtitleLines = subtitle.split('\n');
-      c.height = Math.max(180, 120 + subtitleLines.length * 42);
+      c.height = Math.max(200, 100 + subtitleLines.length * 48);
       const ctx = c.getContext('2d');
       if (!ctx) return new THREE.Sprite();
 
-      // Title - Solid Deep Dark Black
+      // Title - Solid Deep Dark Black (Transparent background, no white card)
       ctx.fillStyle = '#050b14';
-      ctx.font = 'bold 36px sans-serif';
-      ctx.fillText(title, 20, 50);
+      ctx.font = 'bold 42px sans-serif';
+      ctx.fillText(title, 20, 52);
 
       // Subtitle Bullet Lines - Solid High-Contrast Dark Black
       ctx.fillStyle = '#050b14';
-      ctx.font = 'bold 22px sans-serif';
+      ctx.font = 'bold 24px sans-serif';
       subtitleLines.forEach((line, index) => {
-        ctx.fillText(line, 20, 100 + index * 40);
+        ctx.fillText(line, 20, 108 + index * 44);
       });
 
       const tex = new THREE.CanvasTexture(c);
       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
-      sprite.scale.set(subtitleLines.length > 1 ? 6.5 : 4, subtitleLines.length > 1 ? 1.8 + subtitleLines.length * 0.5 : 1.4, 1);
+      sprite.scale.set(6.4, 3.2, 1);
       return sprite;
     }
 
     // --- Project Showcases List ---
-    const cardGeo = new THREE.PlaneGeometry(8.5, 4.8);
+    const cardGeo = new THREE.PlaneGeometry(5.6, 3.8);
     const textureLoader = new THREE.TextureLoader();
 
     const projectList: ProjectShowcase[] = [
@@ -183,7 +203,7 @@ export const RoadTimelineSection: React.FC<RoadTimelineSectionProps> = ({ extern
       { progress: 0.78, title: '2023–2025', subtitle: '• Introduced SAP BTP Practice\n• Built SAP Add-on Solutions\n• Integrated SAP AI capabilities\n• Team expanded to 250+ SAP consultants', color: '#e8d4cf', side: -1, offset: new THREE.Vector3(0, 1.7, 8), imageUrl: '/milestone_2023_2025.jpg' }
     ];
 
-    const cardSideDistance = roadWidth / 2 + cardGeo.parameters.width / 2 + 1.5;
+    const cardSideDistance = roadWidth / 2 + 2.5;
 
     projectList.forEach(item => {
       const group = new THREE.Group();
@@ -209,21 +229,16 @@ export const RoadTimelineSection: React.FC<RoadTimelineSectionProps> = ({ extern
           fog: false
         });
       }
+
+      // 1. Image Plane Mesh - Positioned on one side (e.g. Right when side > 0, Left when side < 0)
       const cardMesh = new THREE.Mesh(cardGeo, mat);
+      cardMesh.position.set(item.side > 0 ? 3.4 : -3.4, 0, 0);
       group.add(cardMesh);
 
-      const labelX = item.side > 0 ? -6.4 : 6.4;
-      const lineGeo = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(labelX * 0.78, 0.4, 0),
-        new THREE.Vector3(labelX * 0.78, -1.8, 0)
-      ]);
-      const lineMat = new THREE.LineBasicMaterial({ color: 0x050b14, transparent: true, opacity: 0.7 });
-      group.add(new THREE.Line(lineGeo, lineMat));
-
+      // 2. Text Sprite Card - Positioned on the OPPOSITE side so text never overlays image!
       const sprite = makeTextSprite(item.title, item.subtitle);
       sprite.material.fog = false;
-      const labelOffset = item.subtitle.includes('\n') ? (item.side < 0 ? 1 : -1) : 0;
-      sprite.position.set(labelX + labelOffset, 0.3, 1.5);
+      sprite.position.set(item.side > 0 ? -3.4 : 3.4, 0, 0.1);
       group.add(sprite);
 
       scene.add(group);
@@ -319,7 +334,7 @@ export const RoadTimelineSection: React.FC<RoadTimelineSectionProps> = ({ extern
         targetMouseX = 0;
         targetMouseY = 0;
       } else {
-        currentProgress += (targetProgressRef.current - currentProgress) * 0.035;
+        currentProgress += (targetProgressRef.current - currentProgress) * 0.02;
         mouseX += (targetMouseX - mouseX) * 0.05;
         mouseY += (targetMouseY - mouseY) * 0.05;
       }

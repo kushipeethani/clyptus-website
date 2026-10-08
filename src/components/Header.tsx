@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Sliders } from 'lucide-react';
+import { Sliders } from 'lucide-react';
 
 interface HeaderProps {
   activePage: string;
@@ -17,9 +17,10 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const navLinks = [
     'Home',
+    'About',
+    'Careers',
     'Projects',
     'Industries',
-    'Solutions',
     'Blogs',
     'Contact'
   ];
@@ -76,19 +77,10 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Quick Studio Toggle on mobile/desktop */}
           <button
             onClick={onToggleCustomizer}
-            className="p-2 rounded-full bg-slate-100 border border-slate-200 text-slate-700 hover:text-sky-600 transition-all text-xs font-semibold"
+            className="p-2.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 hover:text-sky-600 transition-all text-xs font-semibold cursor-pointer"
             title="Toggle Studio Controls"
           >
             <Sliders className="w-4 h-4" />
-          </button>
-
-          {/* Get Consultation CTA Button */}
-          <button
-            onClick={() => onNavigate('Contact')}
-            className="flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-400 text-slate-950 font-extrabold text-xs transition-all shadow-md hover:scale-105 active:scale-95 whitespace-nowrap"
-          >
-            <span>Get Consultation</span>
-            <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
           </button>
         </div>
       </div>

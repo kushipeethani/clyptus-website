@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { AiGalaxyParticleSection } from './AiGalaxyParticleSection';
 import { 
   BarChart3, 
   Workflow, 
   Database, 
-  ArrowRight, 
   CheckCircle2, 
-  BrainCircuit,
   Sparkles,
   Layers,
   Cpu,
@@ -26,11 +24,15 @@ interface AiServicesPageProps {
 }
 
 export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContact }) => {
-  const [activeServiceTab, setActiveServiceTab] = useState<number>(0);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const heroSectionRef = useRef<HTMLDivElement>(null);
+  const [isVisibleSteps, setIsVisibleSteps] = useState(false);
+  const [isVisiblePillars, setIsVisiblePillars] = useState(false);
+  const [isVisibleCatalog, setIsVisibleCatalog] = useState(false);
 
-  // Set Page Meta Title & Description
+  const stepsRef = useRef<HTMLDivElement>(null);
+  const pillarsTrackRef = useRef<HTMLDivElement>(null);
+  const catalogRef = useRef<HTMLDivElement>(null);
+
+  // Set Page Meta Title & Description & Observers
   useEffect(() => {
     document.title = "AI Consulting & Development Services | Clyptus";
     const metaDesc = document.querySelector('meta[name="description"]');
@@ -40,16 +42,58 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
         'Clyptus builds generative AI, machine learning and automation solutions for enterprises, from AI assistants to predictive analytics and data platforms.'
       );
     }
-  }, []);
 
-  // Mouse tilt effect for 3D AI Core
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!heroSectionRef.current) return;
-    const rect = heroSectionRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMousePos({ x, y });
-  };
+    // Sticky Scroll Track RAF listener for Practice Capabilities freeze & spread animation
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          if (pillarsTrackRef.current) {
+            const rect = pillarsTrackRef.current.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const totalDist = rect.height - viewportHeight;
+
+            if (totalDist > 0) {
+              const scrolled = -rect.top;
+              const progress = scrolled / totalDist;
+              // Freeze & spread cards while pinned inside track
+              setIsVisiblePillars(progress >= 0.05 && progress <= 0.95);
+            }
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    // IntersectionObserver for steps and catalog
+    const observerOptions = { 
+      threshold: 0.15,
+      rootMargin: '0px 0px -60px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.target === stepsRef.current) {
+          setIsVisibleSteps(entry.isIntersecting);
+        }
+        if (entry.target === catalogRef.current) {
+          setIsVisibleCatalog(entry.isIntersecting);
+        }
+      });
+    }, observerOptions);
+
+    if (stepsRef.current) observer.observe(stepsRef.current);
+    if (catalogRef.current) observer.observe(catalogRef.current);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      observer.disconnect();
+    };
+  }, []);
 
   const handleContactClick = () => {
     if (onNavigateContact) {
@@ -218,279 +262,117 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
     <div className="w-full bg-slate-50 text-slate-900 font-sans selection:bg-sky-500/20 selection:text-sky-800">
       
       {/* ---------------------------------------------------- */}
-      {/* HERO SECTION                                         */}
+      {/* MONOCHROME 4K MINIMALIST SPIRAL GALAXY GRAPHIC      */}
       {/* ---------------------------------------------------- */}
-      <section 
-        ref={heroSectionRef}
-        onMouseMove={handleMouseMove}
-        className="relative w-full pt-16 pb-20 sm:pt-24 sm:pb-28 px-4 sm:px-6 lg:px-10 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50/50 border-b border-slate-200/80 text-slate-900 select-none"
-      >
-        {/* Ambient Soft Glow Orbs */}
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-sky-400/10 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:32px_32px] opacity-15 pointer-events-none" />
+      <AiGalaxyParticleSection onNavigateContact={handleContactClick} />
 
-        <div className="relative max-w-5xl mx-auto flex flex-col items-center text-center">
+
+
+
+      {/* ---------------------------------------------------- */}
+      {/* 3 CORE AI PRACTICE PILLARS - STICKY SCROLL PINNED    */}
+      {/* ---------------------------------------------------- */}
+      <div ref={pillarsTrackRef} className="relative h-[160vh]">
+        <div className="sticky top-0 h-screen w-full flex flex-col justify-center px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto overflow-hidden pointer-events-auto">
           
-          {/* AI Services Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-50 border border-sky-200/80 shadow-xs mb-6 animate-in fade-in slide-in-from-bottom-2">
-            <span className="w-2 h-2 rounded-full bg-sky-600 animate-ping" />
-            <span className="text-xs font-mono font-extrabold tracking-widest uppercase text-sky-700">
-              AI SERVICES <span className="text-sky-500 mx-1.5">•</span> ENTERPRISE PRACTICE
+          <div className="text-center max-w-3xl mx-auto mb-12 opacity-100">
+            <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
+              PRACTICE CAPABILITIES
             </span>
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 mb-4">
+              Core Enterprise <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600">AI Capabilities</span>
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 font-medium">
+              Explore our core practices designed to turn raw operational data into autonomous enterprise intelligence.
+            </p>
           </div>
 
-          {/* H1 Main Page Title */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] text-slate-900 mb-6 max-w-4xl">
-            AI Consulting & <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600">Development Services</span>
-          </h1>
+          {/* 3 Interactive Cards Grid with Pinned Center-Spread Slide Animation (Always Opaque) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
+            {aiServicesList.map((srv, idx) => {
+              const IconComp = srv.icon;
 
-          {/* Headline & Introduction */}
-          <p className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-800 mb-4 max-w-3xl">
-            “Turn Business Data Into Intelligent Action”
-          </p>
+              let animationClasses = '';
+              let badgeClasses = 'bg-sky-50 text-sky-700 border-sky-200';
+              let iconClasses = 'bg-sky-50 border-sky-100 text-sky-600 group-hover:bg-sky-600 group-hover:text-white';
+              let hoverTitle = 'group-hover:text-sky-600';
+              let hoverBorder = 'hover:border-sky-400';
 
-          <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed mb-10 font-medium">
-            Clyptus designs and builds AI solutions for enterprises: generative AI, AI assistants and copilots, machine learning, conversational AI and intelligent process automation. Our data engineers prepare and run the platforms behind them, including Databricks and Snowflake.
-          </p>
+              if (idx === 0) {
+                animationClasses = isVisiblePillars
+                  ? 'opacity-100 translate-x-0 translate-y-0 scale-100 rotate-0 z-10'
+                  : 'opacity-100 lg:translate-x-[calc(100%+2rem)] translate-y-4 scale-90 -rotate-3 z-30';
+                badgeClasses = 'bg-sky-50 text-sky-700 border-sky-200';
+                iconClasses = 'bg-sky-50 border-sky-100 text-sky-600 group-hover:bg-sky-600 group-hover:text-white';
+                hoverTitle = 'group-hover:text-sky-600';
+                hoverBorder = 'hover:border-sky-400';
+              } else if (idx === 1) {
+                animationClasses = isVisiblePillars
+                  ? 'opacity-100 translate-y-0 scale-100 z-20'
+                  : 'opacity-100 translate-y-8 scale-90 z-20';
+                badgeClasses = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                iconClasses = 'bg-indigo-50 border-indigo-100 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white';
+                hoverTitle = 'group-hover:text-indigo-600';
+                hoverBorder = 'hover:border-indigo-400';
+              } else if (idx === 2) {
+                animationClasses = isVisiblePillars
+                  ? 'opacity-100 translate-x-0 translate-y-0 scale-100 rotate-0 z-10'
+                  : 'opacity-100 lg:-translate-x-[calc(100%+2rem)] translate-y-4 scale-90 rotate-3 z-30';
+                badgeClasses = 'bg-purple-50 text-purple-700 border-purple-200';
+                iconClasses = 'bg-purple-50 border-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white';
+                hoverTitle = 'group-hover:text-purple-600';
+                hoverBorder = 'hover:border-purple-400';
+              }
 
-          {/* Hero CTA Button */}
-          <div className="flex flex-col sm:flex-row items-center gap-4 mb-14">
-            <button
-              onClick={handleContactClick}
-              className="group relative flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-400 text-slate-950 font-black text-sm uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all duration-300"
-            >
-              <span>Talk to our AI team</span>
-              <ArrowRight className="w-4 h-4 stroke-[3] group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
-
-          {/* 3D FLOATING AI CORE STAGE */}
-          <div 
-            className="relative w-full max-w-3xl h-64 sm:h-72 rounded-3xl bg-white/80 border border-slate-200/80 shadow-2xl backdrop-blur-xl p-6 flex items-center justify-center overflow-hidden transition-transform duration-300 ease-out"
-            style={{
-              transform: `rotateY(${mousePos.x * 10}deg) rotateX(${-mousePos.y * 10}deg)`,
-              transformStyle: 'preserve-3d',
-            }}
-          >
-            {/* Ambient Inner Canvas Grid */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 pointer-events-none" />
-
-            {/* Glowing Central AI Core Orb */}
-            <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-sky-500 via-indigo-600 to-purple-600 p-1 shadow-[0_0_50px_rgba(2,132,199,0.35)] flex items-center justify-center animate-pulse z-10">
-              <div className="w-full h-full rounded-full bg-slate-950 flex flex-col items-center justify-center text-white p-2 text-center">
-                <BrainCircuit className="w-8 h-8 text-sky-400 mb-1 animate-spin" style={{ animationDuration: '12s' }} />
-                <span className="text-[9px] font-mono tracking-widest font-extrabold uppercase text-sky-300">CLYPTUS AI</span>
-                <span className="text-[8px] font-mono text-slate-400 font-bold uppercase">CORE ENGINE</span>
-              </div>
-            </div>
-
-            {/* Floating Satellite Service Nodes */}
-            <div className="absolute inset-0 flex items-center justify-between px-8 sm:px-16 pointer-events-none">
-              <div className="flex items-center gap-3 bg-white/95 border border-sky-200/80 px-4 py-2.5 rounded-2xl shadow-lg animate-bounce" style={{ animationDuration: '4s' }}>
-                <BarChart3 className="w-5 h-5 text-sky-600" />
-                <div className="text-left">
-                  <span className="block text-xs font-black text-slate-900">Analytics & Models</span>
-                  <span className="block text-[9px] font-mono font-bold text-sky-600">PREDICTIVE STACK</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 bg-white/95 border border-indigo-200/80 px-4 py-2.5 rounded-2xl shadow-lg animate-bounce" style={{ animationDuration: '5s' }}>
-                <Workflow className="w-5 h-5 text-indigo-600" />
-                <div className="text-left">
-                  <span className="block text-xs font-black text-slate-900">ERP Automation</span>
-                  <span className="block text-[9px] font-mono font-bold text-indigo-600">AUTONOMOUS AGENTS</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Node */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 border border-purple-200/80 px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2 pointer-events-none">
-              <Database className="w-4 h-4 text-purple-600" />
-              <span className="text-xs font-extrabold text-slate-900">Databricks • Snowflake • SAP S/4HANA</span>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-
-      {/* ---------------------------------------------------- */}
-      {/* 3 CORE AI PRACTICE PILLARS                           */}
-      {/* ---------------------------------------------------- */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
-            PRACTICE CAPABILITIES
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 mb-4">
-            Core Enterprise AI Capabilities
-          </h2>
-          <p className="text-sm sm:text-base text-slate-600 font-medium">
-            Explore our core practices designed to turn raw operational data into autonomous enterprise intelligence.
-          </p>
-        </div>
-
-        {/* 3 Interactive Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {aiServicesList.map((srv, idx) => {
-            const IconComp = srv.icon;
-            const isActive = activeServiceTab === idx;
-
-            return (
-              <div
-                key={srv.number}
-                onClick={() => setActiveServiceTab(idx)}
-                className={`group relative p-8 rounded-3xl bg-white border transition-all duration-300 ease-out cursor-pointer flex flex-col justify-between overflow-hidden ${
-                  isActive
-                    ? `border-sky-500 shadow-2xl scale-[1.03] ring-2 ring-sky-500/20`
-                    : `border-slate-200/90 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-sky-300`
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="text-3xl font-black font-mono tracking-tighter text-slate-300 group-hover:text-slate-900 transition-colors">
-                      {srv.number}
-                    </span>
-                    <span className="px-3 py-1 rounded-full text-[10px] font-mono font-extrabold tracking-wider uppercase bg-sky-50 text-sky-700 border border-sky-100">
-                      {srv.badge}
-                    </span>
-                  </div>
-
-                  <div className="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 mb-6 group-hover:scale-110 group-hover:bg-sky-600 group-hover:text-white transition-all duration-300">
-                    <IconComp className="w-7 h-7 stroke-[2]" />
-                  </div>
-
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-3 group-hover:text-sky-600 transition-colors">
-                    {srv.title}
-                  </h3>
-
-                  <p className="text-sm text-slate-600 leading-relaxed font-medium mb-6">
-                    {srv.description}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold tracking-wider uppercase text-sky-600 group-hover:translate-x-1 transition-transform flex items-center gap-1.5">
-                    View Interactive Concept →
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ACTIVE SERVICE DYNAMIC VISUALIZATION CANVAS */}
-        <div className="mt-12 p-8 sm:p-12 rounded-3xl bg-slate-900 text-white shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-sky-500/20 via-indigo-500/15 to-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
-
-          {activeServiceTab === 0 && (
-            <div className="animate-in fade-in duration-300">
-              <div className="flex items-center gap-3 mb-6">
-                <BarChart3 className="w-6 h-6 text-sky-400" />
-                <h3 className="text-2xl font-black text-white">01 — Data Science & Predictive Analytics Concept</h3>
-              </div>
-              <p className="text-sm text-slate-300 max-w-3xl mb-8">
-                Interactive predictive forecasting model consuming real-time ERP sales & supply chain metrics to generate instant executive decision curves.
-              </p>
-
-              <div className="w-full h-64 bg-slate-950/80 rounded-2xl border border-slate-800 p-6 flex flex-col justify-between relative overflow-hidden">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <span className="text-xs font-mono text-sky-400 font-bold uppercase flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
-                    LIVE PREDICTION ENGINE
-                  </span>
-                  <span className="text-xs font-mono text-slate-400 font-bold">ACCURACY: 99.4%</span>
-                </div>
-
-                <div className="flex items-end justify-between gap-3 h-36 px-4">
-                  {[45, 62, 58, 79, 85, 94, 88, 96].map((val, idx) => (
-                    <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                      <div 
-                        className="w-full rounded-t-lg bg-gradient-to-t from-sky-600 via-indigo-500 to-sky-400 transition-all duration-700 hover:brightness-125"
-                        style={{ height: `${val}%` }}
-                      />
-                      <span className="text-[10px] font-mono text-slate-500">M{idx + 1}</span>
+              return (
+                <div
+                  key={srv.number}
+                  style={{
+                    transitionDelay: isVisiblePillars ? `${idx * 120}ms` : '0ms',
+                  }}
+                  className={`group relative p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-2xl hover:-translate-y-2 ${hoverBorder} transition-all duration-[1800ms] ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col justify-between overflow-hidden ${animationClasses}`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <span className="text-3xl font-black font-mono tracking-tighter text-slate-300 group-hover:text-slate-900 transition-colors">
+                        {srv.number}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-mono font-extrabold tracking-wider uppercase border ${badgeClasses}`}>
+                        {srv.badge}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
-          {activeServiceTab === 1 && (
-            <div className="animate-in fade-in duration-300">
-              <div className="flex items-center gap-3 mb-6">
-                <Workflow className="w-6 h-6 text-indigo-400" />
-                <h3 className="text-2xl font-black text-white">02 — Intelligent Process Automation Workflow</h3>
-              </div>
-              <p className="text-sm text-slate-300 max-w-3xl mb-8">
-                Autonomous document intake, master-data verification, and instant 3-way ERP reconciliation without manual operator delay.
-              </p>
+                    <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-xs ${iconClasses}`}>
+                      <IconComp className="w-7 h-7 stroke-[2]" />
+                    </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                {[
-                  { title: '1. Document Intake', desc: 'PDF / OCR Data Capture' },
-                  { title: '2. LLM Extraction', desc: 'Entity & Table Parsing' },
-                  { title: '3. ERP Validation', desc: 'Master Data & Rule Checks' },
-                  { title: '4. SAP Posting', desc: 'Zero-Touch Reconciliation' },
-                ].map((node, i) => (
-                  <div key={i} className="p-5 rounded-2xl bg-slate-950 border border-indigo-500/30 flex flex-col justify-between">
-                    <span className="text-[10px] font-mono text-indigo-400 font-extrabold mb-2 uppercase">STAGE 0{i + 1}</span>
-                    <h4 className="text-base font-extrabold text-white mb-1">{node.title}</h4>
-                    <p className="text-xs text-slate-400 font-medium">{node.desc}</p>
+                    <h3 className={`text-2xl font-black text-slate-900 tracking-tight mb-3 transition-colors ${hoverTitle}`}>
+                      {srv.title}
+                    </h3>
+
+                    <p className="text-sm text-slate-600 leading-relaxed font-medium mb-6">
+                      {srv.description}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeServiceTab === 2 && (
-            <div className="animate-in fade-in duration-300">
-              <div className="flex items-center gap-3 mb-6">
-                <Database className="w-6 h-6 text-purple-400" />
-                <h3 className="text-2xl font-black text-white">03 — AI Inside SAP S/4HANA Architecture</h3>
-              </div>
-              <p className="text-sm text-slate-300 max-w-3xl mb-8">
-                Embedded machine learning models running directly within SAP BTP and S/4HANA core to deliver real-time operational insights.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="p-6 rounded-2xl bg-slate-950 border border-purple-500/30 text-left">
-                  <span className="text-[10px] font-mono text-purple-400 font-bold uppercase block mb-2">ERP DATA CORE</span>
-                  <h4 className="text-lg font-black text-white mb-1">SAP S/4HANA HANA DB</h4>
-                  <p className="text-xs text-slate-400">High-speed in-memory transactional ledger</p>
                 </div>
-
-                <div className="p-6 rounded-2xl bg-slate-950 border border-sky-500/30 text-left">
-                  <span className="text-[10px] font-mono text-sky-400 font-bold uppercase block mb-2">AI PIPELINE</span>
-                  <h4 className="text-lg font-black text-white mb-1">SAP BTP AI Core</h4>
-                  <p className="text-xs text-slate-400">Custom ML algorithms & RAG engines</p>
-                </div>
-
-                <div className="p-6 rounded-2xl bg-slate-950 border border-indigo-500/30 text-left">
-                  <span className="text-[10px] font-mono text-indigo-400 font-bold uppercase block mb-2">BUSINESS IMPACT</span>
-                  <h4 className="text-lg font-black text-white mb-1">Fiori Smart Insights</h4>
-                  <p className="text-xs text-slate-400">Real-time alerts & action suggestions</p>
-                </div>
-              </div>
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
-      </section>
+      </div>
 
 
       {/* ---------------------------------------------------- */}
       {/* FULL SERVICES & DATA PLATFORMS CATALOG               */}
       {/* ---------------------------------------------------- */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-slate-100/80 border-y border-slate-200/80">
+      <section ref={catalogRef} className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-slate-100/80 border-y border-slate-200/80 overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-700 transform ${isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
               COMPLETE PORTFOLIO
             </span>
             <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 mb-4">
-              AI & Data Platform Offerings
+              AI & Data <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600">Platform Offerings</span>
             </h2>
             <p className="text-sm sm:text-base text-slate-600 font-medium">
               From model engineering to modern cloud data infrastructure (Databricks & Snowflake), we cover the entire enterprise AI lifecyle.
@@ -499,7 +381,9 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Category 1: Generative AI & Automation */}
-            <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className={`p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 hover:shadow-lg hover:-translate-y-1 hover:border-sky-400 ${
+              isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+            }`}>
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 mb-6">
                   <Sparkles className="w-6 h-6" />
@@ -517,7 +401,9 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             </div>
 
             {/* Category 2: Data Services & Platforms */}
-            <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className={`p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 delay-150 hover:shadow-lg hover:-translate-y-1 hover:border-indigo-400 ${
+              isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+            }`}>
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-6">
                   <Layers className="w-6 h-6" />
@@ -535,7 +421,9 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             </div>
 
             {/* Category 3: Model Types */}
-            <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className={`p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 delay-300 hover:shadow-lg hover:-translate-y-1 hover:border-purple-400 ${
+              isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+            }`}>
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 mb-6">
                   <LineChart className="w-6 h-6" />
@@ -559,40 +447,67 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
       {/* ---------------------------------------------------- */}
       {/* HOW AN AI PROJECT RUNS (5 DELIVERY STAGES)           */}
       {/* ---------------------------------------------------- */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+      <section ref={stepsRef} className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto overflow-hidden">
+        <div className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-700 transform ${isVisibleSteps ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
             DELIVERY METHODOLOGY
           </span>
           <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 mb-4">
-            How an AI Project Runs
+            How an <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600">AI Project Runs</span>
           </h2>
           <p className="text-sm sm:text-base text-slate-600 font-medium">
             A battle-tested 5-stage engineering lifecycle designed for accuracy, reliability, and enterprise scale.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-          {projectSteps.map((st) => {
-            const StepIcon = st.icon;
-            return (
-              <div 
-                key={st.step}
-                className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between hover:border-sky-400 hover:shadow-md transition-all"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 text-sky-600 text-xs font-black flex items-center justify-center font-mono">
-                      {st.step}
-                    </span>
-                    <StepIcon className="w-4 h-4 text-slate-400" />
+        {/* 5 Stage Connected Grid with Scroll-Down Staggered Animation */}
+        <div className="relative">
+          <div className="hidden md:block absolute top-1/2 left-8 right-8 h-0.5 bg-gradient-to-r from-sky-300 via-indigo-300 to-purple-300 -translate-y-6 z-0 pointer-events-none" />
+
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 relative z-10">
+            {projectSteps.map((st, idx) => {
+              const StepIcon = st.icon;
+              const delayMs = idx * 130;
+
+              // Vibrant 5-step palette
+              const stepStyles = [
+                { badge: 'bg-sky-50 text-sky-600 border-sky-100 group-hover:bg-sky-600 group-hover:text-white', iconHover: 'group-hover:text-sky-600', hoverBorder: 'hover:border-sky-400', bar: 'from-sky-500 to-sky-600' },
+                { badge: 'bg-indigo-50 text-indigo-600 border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white', iconHover: 'group-hover:text-indigo-600', hoverBorder: 'hover:border-indigo-400', bar: 'from-indigo-500 to-indigo-600' },
+                { badge: 'bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:bg-emerald-600 group-hover:text-white', iconHover: 'group-hover:text-emerald-600', hoverBorder: 'hover:border-emerald-400', bar: 'from-emerald-500 to-emerald-600' },
+                { badge: 'bg-purple-50 text-purple-600 border-purple-100 group-hover:bg-purple-600 group-hover:text-white', iconHover: 'group-hover:text-purple-600', hoverBorder: 'hover:border-purple-400', bar: 'from-purple-500 to-purple-600' },
+                { badge: 'bg-amber-50 text-amber-600 border-amber-100 group-hover:bg-amber-600 group-hover:text-white', iconHover: 'group-hover:text-amber-600', hoverBorder: 'hover:border-amber-400', bar: 'from-amber-500 to-amber-600' },
+              ][idx];
+
+              return (
+                <div 
+                  key={st.step}
+                  style={{ transitionDelay: `${isVisibleSteps ? delayMs : 0}ms` }}
+                  className={`group p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 ease-out transform ${stepStyles.hoverBorder} hover:shadow-xl hover:-translate-y-2 cursor-pointer ${
+                    isVisibleSteps ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-12 scale-95'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className={`w-9 h-9 rounded-xl border text-xs font-black flex items-center justify-center font-mono group-hover:scale-110 transition-all duration-300 ${stepStyles.badge}`}>
+                        {st.step}
+                      </span>
+                      <StepIcon className={`w-4 h-4 text-slate-400 ${stepStyles.iconHover} group-hover:rotate-12 transition-all duration-300`} />
+                    </div>
+                    <h3 className={`text-base font-extrabold text-slate-900 mb-2 ${stepStyles.iconHover} transition-colors`}>
+                      {st.title}
+                    </h3>
+                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                      {st.desc}
+                    </p>
                   </div>
-                  <h3 className="text-base font-extrabold text-slate-900 mb-2">{st.title}</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed font-medium">{st.desc}</p>
+
+                  <div className="w-full h-1 rounded-full bg-slate-100 mt-5 overflow-hidden">
+                    <div className={`w-0 group-hover:w-full h-full bg-gradient-to-r ${stepStyles.bar} transition-all duration-500 ease-out`} />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -600,24 +515,24 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
       {/* ---------------------------------------------------- */}
       {/* INNOVATION LAB (EXPLORING TOMORROW - R&D RESEARCH)   */}
       {/* ---------------------------------------------------- */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-slate-900 text-white border-y border-slate-800">
+      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-slate-100/80 text-slate-900 border-y border-slate-200/80">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-mono font-extrabold mb-3 uppercase">
-                <FlaskConical className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-mono font-extrabold mb-3 uppercase">
+                <FlaskConical className="w-3.5 h-3.5 text-purple-600" />
                 <span>INNOVATION LAB • RESEARCH & EXPLORATION</span>
               </div>
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white mb-3">
-                Exploring Tomorrow
+              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 mb-3">
+                Exploring <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-500">Tomorrow</span>
               </h2>
-              <p className="text-sm sm:text-base text-slate-400 max-w-2xl font-medium">
+              <p className="text-sm sm:text-base text-slate-600 max-w-2xl font-medium">
                 Active R&D focus areas and emerging technology evaluations currently undergoing internal validation prior to client delivery rollout.
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-400 font-mono max-w-xs">
-              <span className="text-amber-400 font-bold block mb-1">⚠️ R&D STATUS NOTE</span>
+            <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-xs text-amber-900 font-mono max-w-xs shadow-sm">
+              <span className="text-amber-700 font-bold block mb-1">⚠️ R&D STATUS NOTE</span>
               Exploration and research initiatives under evaluation. Not presented as production client deliverables until management clearance.
             </div>
           </div>
@@ -626,14 +541,14 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             {innovationLabAreas.map((area, idx) => (
               <div
                 key={idx}
-                className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-purple-500/50 transition-all flex flex-col justify-between"
+                className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-purple-400 hover:shadow-md transition-all flex flex-col justify-between group"
               >
-                <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-3">
+                <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-200 text-purple-600 flex items-center justify-center mb-3 group-hover:bg-purple-600 group-hover:text-white transition-all">
                   <Bot className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-extrabold text-white mb-1">{area.name}</h3>
-                  <span className="text-[10px] font-mono text-slate-400 block">{area.tag}</span>
+                  <h3 className="text-sm font-extrabold text-slate-900 mb-1 group-hover:text-purple-600 transition-colors">{area.name}</h3>
+                  <span className="text-[10px] font-mono text-slate-500 block">{area.tag}</span>
                 </div>
               </div>
             ))}
@@ -647,31 +562,39 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
       {/* ---------------------------------------------------- */}
       <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-mono font-extrabold text-indigo-600 uppercase tracking-widest block mb-2">
+          <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
             INDUSTRY SOLUTIONS
           </span>
           <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900">
-            Verified Project Lines by Sector
+            Verified Project Lines by <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600">Sector</span>
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {industryProjects.map((proj, idx) => {
             const SectorIcon = proj.icon;
+
+            const sectorStyles = [
+              { badge: 'bg-sky-50 border-sky-100 text-sky-700', hoverBorder: 'hover:border-sky-400', hoverIcon: 'group-hover:text-sky-600', textAccent: 'text-sky-600' },
+              { badge: 'bg-indigo-50 border-indigo-100 text-indigo-700', hoverBorder: 'hover:border-indigo-400', hoverIcon: 'group-hover:text-indigo-600', textAccent: 'text-indigo-600' },
+              { badge: 'bg-emerald-50 border-emerald-100 text-emerald-700', hoverBorder: 'hover:border-emerald-400', hoverIcon: 'group-hover:text-emerald-600', textAccent: 'text-emerald-600' },
+              { badge: 'bg-purple-50 border-purple-100 text-purple-700', hoverBorder: 'hover:border-purple-400', hoverIcon: 'group-hover:text-purple-600', textAccent: 'text-purple-600' },
+            ][idx];
+
             return (
               <div
                 key={idx}
-                className="p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1"
+                className={`p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 ${sectorStyles.hoverBorder}`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <span className="inline-block px-3 py-1 rounded-full bg-sky-50 border border-sky-100 text-[10px] font-mono font-extrabold text-sky-700 tracking-wider uppercase">
+                    <span className={`inline-block px-3 py-1 rounded-full border text-[10px] font-mono font-extrabold tracking-wider uppercase ${sectorStyles.badge}`}>
                       {proj.sector}
                     </span>
-                    <SectorIcon className="w-5 h-5 text-slate-400 group-hover:text-sky-600 transition-colors" />
+                    <SectorIcon className={`w-5 h-5 text-slate-400 ${sectorStyles.hoverIcon} transition-colors`} />
                   </div>
 
-                  <h3 className="text-xl font-black text-slate-900 tracking-tight mb-3 group-hover:text-sky-600 transition-colors">
+                  <h3 className={`text-xl font-black text-slate-900 tracking-tight mb-3 ${sectorStyles.hoverIcon} transition-colors`}>
                     {proj.title}
                   </h3>
 
@@ -681,8 +604,8 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono font-bold text-slate-500">
-                  <span className="flex items-center gap-1.5 text-sky-600">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-sky-600" />
+                  <span className={`flex items-center gap-1.5 ${sectorStyles.textAccent}`}>
+                    <CheckCircle2 className={`w-3.5 h-3.5 ${sectorStyles.textAccent}`} />
                     VERIFIED IMPLEMENTATION
                   </span>
                 </div>
@@ -702,7 +625,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             CLEAR ANSWERS
           </span>
           <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900">
-            Frequently Asked Questions
+            Frequently Asked <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600">Questions</span>
           </h2>
         </div>
 
@@ -710,10 +633,10 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
           {faqList.map((faq, idx) => (
             <div
               key={idx}
-              className="p-8 rounded-2xl bg-sky-50/40 border border-sky-100/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+              className="group p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md hover:border-sky-300 transition-all flex flex-col justify-between"
             >
               <div>
-                <h3 className="text-lg font-bold text-slate-900 tracking-tight mb-4">
+                <h3 className="text-lg font-bold text-slate-900 tracking-tight mb-4 group-hover:text-sky-600 transition-colors">
                   {faq.question}
                 </h3>
                 <p className="text-sm text-slate-600 leading-relaxed font-medium">
@@ -723,40 +646,6 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             </div>
           ))}
         </div>
-      </section>
-
-
-      {/* ---------------------------------------------------- */}
-      {/* FINAL CTA                                            */}
-      {/* ---------------------------------------------------- */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-6xl mx-auto select-none">
-        <div className="relative rounded-3xl p-10 sm:p-16 bg-gradient-to-br from-sky-500/10 via-indigo-500/5 to-purple-500/10 border border-sky-200/80 text-center shadow-xl overflow-hidden">
-          <div className="absolute top-0 right-1/3 w-[300px] h-[300px] bg-sky-400/20 rounded-full blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-0 left-1/3 w-[300px] h-[300px] bg-purple-400/20 rounded-full blur-[100px] pointer-events-none" />
-
-          <div className="max-w-3xl mx-auto relative z-10">
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 mb-6">
-              Ready to transform your data into intelligent action?
-            </h2>
-            <p className="text-base sm:text-lg text-slate-600 font-medium leading-relaxed mb-10 max-w-2xl mx-auto">
-              Talk to the Clyptus AI team about generative AI, machine learning models, Databricks & Snowflake platforms, or SAP AI integration.
-            </p>
-
-            <button
-              onClick={handleContactClick}
-              className="group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-400 text-slate-950 font-black text-sm uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all duration-300"
-            >
-              <span>Talk to our AI team →</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ---------------------------------------------------- */}
-      {/* MONOCHROME 4K MINIMALIST SPIRAL GALAXY GRAPHIC      */}
-      {/* ---------------------------------------------------- */}
-      <AiGalaxyParticleSection />
-
-    </div>
+      </section>    </div>
   );
 };

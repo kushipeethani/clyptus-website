@@ -47,10 +47,10 @@ const PORTFOLIO_CARDS: ProjectCard[] = [
     id: 4,
     type: 'photo',
     category: 'OPERATIONS MANAGER',
-    title: 'Operations Manager',
-    subtitle: 'Operations & Delivery',
+    title: 'Satya Narayana K',
+    subtitle: 'Satya Narayana K',
     description: 'Leading cross-functional engineering teams to ensure seamless delivery and client satisfaction.',
-    imageUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1200&auto=format&fit=crop',
+    imageUrl: '/operations_manager.png',
     linkText: 'EXPLORE PROFILE',
     badge: 'OPERATIONS MANAGER • CLYPTUS',
   },
@@ -66,34 +66,15 @@ const PORTFOLIO_CARDS: ProjectCard[] = [
   {
     id: 6,
     type: 'photo',
-    category: 'SECURITY SHIELD',
-    title: 'Zero-Trust Shield',
-    subtitle: 'Encrypted Core.',
-    description: 'Continuous compliance tracking, threat detection, and military-grade encryption.',
-    imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=1200&auto=format&fit=crop',
-    linkText: 'EXPLORE PROJECT',
-    badge: 'ISO 27001 & COMPLIANCE READY',
+    category: 'PROJECT MANAGER',
+    title: 'Nandhini P',
+    subtitle: 'Nandhini P',
+    description: 'Leading project execution, milestone delivery, and client engagement for enterprise solutions.',
+    imageUrl: '/project_manager.png',
+    linkText: 'EXPLORE PROFILE',
+    badge: 'PROJECT MANAGER • CLYPTUS',
   },
 
-  // Pair 4: Text Panel + Photo Panel
-  {
-    id: 7,
-    type: 'text',
-    category: 'ADAPTIVE ARCHITECTURE',
-    title: 'Self-healing\nmicroservices',
-    linkText: 'VIEW ARCHITECTURE',
-  },
-  {
-    id: 8,
-    type: 'photo',
-    category: 'AUTONOMOUS FABRIC',
-    title: 'Self-Healing Fabric',
-    subtitle: 'Auto-Scaling.',
-    description: 'Resilient cloud-native microservice fabrics that auto-scale dynamically under peak global load.',
-    imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1200&auto=format&fit=crop',
-    linkText: 'EXPLORE PROJECT',
-    badge: 'AUTONOMOUS AUTO-SCALING CLUSTERS',
-  },
 ];
 
 export const RisingSlideCardsSection: React.FC = () => {
@@ -136,7 +117,7 @@ export const RisingSlideCardsSection: React.FC = () => {
     let current = smoothScrollProgress;
 
     const loop = () => {
-      current += (rawScrollProgress - current) * 0.08;
+      current += (rawScrollProgress - current) * 0.04;
       setSmoothScrollProgress(current);
       animId = requestAnimationFrame(loop);
     };
@@ -148,7 +129,7 @@ export const RisingSlideCardsSection: React.FC = () => {
   const totalCards = PORTFOLIO_CARDS.length;
   const CARD_WIDTH_VW = 50;
 
-  // Breakdown of scroll phases over 1500vh track:
+  // Breakdown of scroll phases over 2800vh track:
   // Phase 1 (0.00 -> 0.68): Feature Cards Rise-Up & Slide-Left Animation (cardsProgress 0 -> 1)
   // Phase 2 (0.68 -> 0.80): Curtain Transition - Cards Layer slides completely left (curtainOpenProgress 0 -> 1)
   // Phase 3 (0.80 -> 1.00): 3D Milestone Timeline driving animation (timelineDriveProgress 0 -> 1)
@@ -166,8 +147,8 @@ export const RisingSlideCardsSection: React.FC = () => {
   const currentShiftVw = cardsProgress * maxShiftVw;
 
   return (
-    /* Outer Pinned Scroll Track (1500vh holds cards + curtain reveal + 3D road drive) */
-    <div ref={trackRef} className="relative w-full h-[1500vh] bg-[#e9e8e3] select-none font-sans border-t border-slate-300/60">
+    /* Outer Pinned Scroll Track (2800vh holds cards + curtain reveal + 3D road drive) */
+    <div ref={trackRef} className="relative w-full h-[2800vh] bg-[#e9e8e3] select-none font-sans border-t border-slate-300/60">
       {/* Sticky Full-Screen Viewport Stage */}
       <div className="sticky top-0 w-full h-screen overflow-hidden">
         
@@ -242,17 +223,13 @@ export const RisingSlideCardsSection: React.FC = () => {
                           {card.linkText}
                           <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                         </button>
-
-                        <span className="font-mono text-xs text-slate-400">
-                          0{card.id} / 0{totalCards}
-                        </span>
                       </div>
                     </div>
                   ) : (
-                    /* PHOTO PANEL (Matches Card 2 Reference Cover Image & Subtitle Style) */
+                    /* PHOTO PANEL (Full-Height Cover Image) */
                     <div className="w-full h-full flex flex-col justify-between z-10">
-                      {/* Card Top Graphic Frame / Image Cover */}
-                      <div className="relative w-full flex-1 rounded-2xl overflow-hidden mb-6 bg-slate-200 shadow-sm border border-slate-300/40">
+                      {/* Card Graphic Frame / Full-Height Image Cover */}
+                      <div className="relative w-full h-full rounded-2xl overflow-hidden bg-slate-200 shadow-sm border border-slate-300/40">
                         {card.imageUrl ? (
                           <img
                             src={card.imageUrl}
@@ -264,18 +241,18 @@ export const RisingSlideCardsSection: React.FC = () => {
                         )}
                         
                         {/* Gradient Dark Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
 
                         {/* Top Badge inside Image */}
                         {card.badge && (
-                          <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                            <span className="px-3 py-1 rounded-full text-[10px] font-mono tracking-widest font-bold uppercase bg-white/90 backdrop-blur-md text-slate-900 border border-white/50 shadow-sm">
+                          <div className="absolute top-5 left-5 right-5 flex items-center justify-between">
+                            <span className="px-3.5 py-1.5 rounded-full text-[10px] font-mono tracking-widest font-bold uppercase bg-white/90 backdrop-blur-md text-slate-900 border border-white/50 shadow-sm">
                               {card.badge}
                             </span>
                           </div>
                         )}
 
-                        {/* Overlay Title inside Image (e.g. "Hi, I'm Alex.") */}
+                        {/* Overlay Title inside Image */}
                         {card.subtitle && (
                           <div className="absolute bottom-6 left-6 right-6">
                             <h3 className="text-3xl sm:text-5xl lg:text-6xl font-normal text-white tracking-tight drop-shadow-md">
@@ -283,32 +260,6 @@ export const RisingSlideCardsSection: React.FC = () => {
                             </h3>
                           </div>
                         )}
-                      </div>
-
-                      {/* Bottom Metadata & Link Row (Matches Reference Image) */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="text-xl sm:text-2xl font-medium text-[#1a1a1a] tracking-tight">
-                            {card.title}
-                          </h4>
-
-                          <span className="font-mono text-xs text-slate-400">
-                            0{card.id} / 0{totalCards}
-                          </span>
-                        </div>
-
-                        {card.description && (
-                          <p className="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed mb-4 max-w-md">
-                            {card.description}
-                          </p>
-                        )}
-
-                        <div className="pt-3 border-t border-slate-300/50 flex items-center justify-between">
-                          <button className="inline-flex items-center gap-2 font-mono text-xs tracking-widest text-slate-800 font-bold uppercase group-hover:text-black transition-colors border-b border-slate-400 pb-1">
-                            {card.linkText}
-                            <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                          </button>
-                        </div>
                       </div>
                     </div>
                   )}

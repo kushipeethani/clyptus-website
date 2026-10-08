@@ -12,9 +12,15 @@ import { MetricsCounterSection } from './components/MetricsCounterSection';
 import { ContactSection } from './components/ContactSection';
 import { SapServicesPage } from './components/SapServicesPage';
 import { AiServicesPage } from './components/AiServicesPage';
+import { AboutPage } from './components/AboutPage';
+import { CareersPage } from './components/CareersPage';
+import { IndustriesPage } from './components/IndustriesPage';
 import { RisingSlideCardsSection } from './components/RisingSlideCardsSection';
 import { Services3dOrbUniverse } from './components/Services3dOrbUniverse';
 import { ServicesBottomLeftWidget } from './components/ServicesBottomLeftWidget';
+import { FloatingSocialTooltip } from './components/FloatingSocialTooltip';
+import { Footer } from './components/Footer';
+import { ResourceModal } from './components/ResourceModal';
 
 export function App() {
   const [showIntro, setShowIntro] = useState<boolean>(true);
@@ -26,6 +32,7 @@ export function App() {
   const [is3dServicesOpen, setIs3dServicesOpen] = useState<boolean>(false);
   const [selectedCard, setSelectedCard] = useState<SliderCard | null>(null);
   const [codeModalCard, setCodeModalCard] = useState<SliderCard | null>(null);
+  const [activeResourceModal, setActiveResourceModal] = useState<'privacy' | 'terms' | 'cookies' | 'faqs' | 'insights' | null>(null);
 
   // Filter cards by search term
   const filteredCards = useMemo(() => {
@@ -85,6 +92,30 @@ export function App() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }} />
         </main>
+      ) : currentPage === 'About' ? (
+        /* DEDICATED ABOUT US PAGE */
+        <main className="w-full flex-1 flex flex-col items-center">
+          <AboutPage onNavigate={(page) => {
+            setCurrentPage(page);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }} />
+        </main>
+      ) : currentPage === 'Careers' ? (
+        /* DEDICATED CAREERS PAGE */
+        <main className="w-full flex-1 flex flex-col items-center">
+          <CareersPage onNavigateContact={() => {
+            setCurrentPage('Contact');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }} />
+        </main>
+      ) : currentPage === 'Industries' ? (
+        /* DEDICATED INDUSTRIES PAGE */
+        <main className="w-full flex-1 flex flex-col items-center">
+          <IndustriesPage onNavigateContact={() => {
+            setCurrentPage('Contact');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }} />
+        </main>
       ) : (
         /* MAIN HOME PAGE & 3D SPIRAL STAGE */
         <main className="w-full flex-1 flex flex-col items-center">
@@ -120,8 +151,20 @@ export function App() {
           {/* Metrics Counter Animated Section */}
           <MetricsCounterSection />
 
-          {/* AI Scroll-Driven Zoom Typography Section ("AI IS CHANGING HOW WE WORK.") */}
-          <AiImpactSection />
+          {/* AI Scroll-Driven Section (Stage 1: SMART IT SERVICES -> Stage 2: 3 Cards for SAP, IT Recruiting, AI) */}
+          <AiImpactSection
+            onSelectService={(serviceId) => {
+              if (serviceId === 'sap') {
+                setCurrentPage('SAP');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              } else if (serviceId === 'ai') {
+                setCurrentPage('AI');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              } else if (serviceId === 'recruiting') {
+                setIs3dServicesOpen(true);
+              }
+            }}
+          />
 
           {/* 5 Feature Cards Animated Section + Curtain Reveal 3D Timeline */}
           <RisingSlideCardsSection />
@@ -141,6 +184,9 @@ export function App() {
         }}
       />
 
+      {/* Bottom Right Floating Social Tooltip Component */}
+      <FloatingSocialTooltip />
+
       {/* 3D Services Universe Full-Screen Cinematic Modal */}
       <Services3dOrbUniverse
         isOpen={is3dServicesOpen}
@@ -158,13 +204,37 @@ export function App() {
         }}
       />
 
-      {/* Footer */}
-      <footer className="w-full border-t border-slate-200 bg-white py-8 px-4 text-center text-xs text-slate-500 flex flex-col items-center gap-2 shadow-inner">
-        <div className="flex items-center gap-2 font-mono text-slate-600">
-          <span className="font-bold text-slate-900">Clyptus</span> • 3D Spiral Slider Studio
-        </div>
-        <p>Built with React, CSS 3D Perspective, and WebGL depth sorting mechanics.</p>
-      </footer>
+      {/* Full Brand Footer */}
+      <Footer
+        onNavigate={(page, sectionId) => {
+          setCurrentPage(page);
+          if (page === 'Services') {
+            setIs3dServicesOpen(true);
+          }
+          setTimeout(() => {
+            if (sectionId) {
+              const el = document.getElementById(sectionId);
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+                return;
+              }
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }, 100);
+        }}
+        onOpen3dServices={() => setIs3dServicesOpen(true)}
+        onOpenResourceModal={(type) => setActiveResourceModal(type)}
+      />
+
+      {/* Legal & Resource Modal (Privacy, Terms, FAQs, Insights, Cookies) */}
+      <ResourceModal
+        type={activeResourceModal}
+        onClose={() => setActiveResourceModal(null)}
+        onNavigateContact={() => {
+          setCurrentPage('Contact');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
 
       {/* Floating Studio Parameter Drawer */}
       <StudioCustomizer
