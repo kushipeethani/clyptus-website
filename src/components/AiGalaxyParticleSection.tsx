@@ -10,18 +10,20 @@ interface Particle {
   charcoalHex: string;
   wobbleOffset: number;
   wobbleSpeed: number;
+  offsetX: number;
+  offsetY: number;
+  vx: number;
+  vy: number;
 }
 
 export const AiGalaxyParticleSection: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Mouse tracking with useRef to prevent React re-render resets on mouse movement
+  // Direct mouse tracking ref for immediate, high-response dispersion
   const mouseRef = useRef({
-    targetX: -1000,
-    targetY: -1000,
-    currX: -1000,
-    currY: -1000,
+    x: -1000,
+    y: -1000,
     active: false,
   });
 
@@ -48,7 +50,7 @@ export const AiGalaxyParticleSection: React.FC = () => {
     const PARTICLE_COUNT = 1400;
     const particles: Particle[] = [];
 
-    // Initialize spiral galaxy particles once on mount
+    // Initialize spiral galaxy particles once on mount with zero offset/velocity
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const armIndex = i % NUM_ARMS;
       const distanceRatio = Math.pow(Math.random(), 1.6);
@@ -70,6 +72,10 @@ export const AiGalaxyParticleSection: React.FC = () => {
         charcoalHex,
         wobbleOffset,
         wobbleSpeed,
+        offsetX: 0,
+        offsetY: 0,
+        vx: 0,
+        vy: 0,
       });
     }
 
@@ -104,12 +110,6 @@ export const AiGalaxyParticleSection: React.FC = () => {
 
       globalRotation += 0.0012; // Smooth fluid orbital spin
 
-      // Smoothly interpolate mouse pointer coordinates
-      if (mouseRef.current.active) {
-        mouseRef.current.currX += (mouseRef.current.targetX - mouseRef.current.currX) * 0.06;
-        mouseRef.current.currY += (mouseRef.current.targetY - mouseRef.current.currY) * 0.06;
-      }
-
       // 2. Draw subtle glowing off-white core halo
       const coreGradient = ctx.createRadialGradient(
         centerX, centerY, 0,
@@ -133,7 +133,7 @@ export const AiGalaxyParticleSection: React.FC = () => {
       ctx.arc(centerX, centerY, 24, 0, Math.PI * 2);
       ctx.stroke();
 
-      // 3. Render animated particles along spiral galaxy arms
+      // 3. Render animated particles with interactive physics dispersion
       particles.forEach((p) => {
         const spiralTightness = 4.2;
         const currentAngle = p.baseAngle + globalRotation + (1 - p.distanceRatio) * spiralTightness;
@@ -143,36 +143,56 @@ export const AiGalaxyParticleSection: React.FC = () => {
         const wobbleX = Math.sin(p.wobbleOffset) * (p.distanceRatio * 6);
         const wobbleY = Math.cos(p.wobbleOffset) * (p.distanceRatio * 6);
 
-        let px = centerX + Math.cos(currentAngle) * currentRadius + wobbleX;
-        let py = centerY + Math.sin(currentAngle) * currentRadius + wobbleY;
+        // Base orbital coordinates
+        const baseX = centerX + Math.cos(currentAngle) * currentRadius + wobbleX;
+        const baseY = centerY + Math.sin(currentAngle) * currentRadius + wobbleY;
 
-        let moveSpeedMultiplier = 1.0;
+        // Current actual position with physical dispersion offsets
+        const px = baseX + p.offsetX;
+        const py = baseY + p.offsetY;
 
-        // Interactive Mouse Particle Dispersion: Scatter & disperse particles away from cursor
+        // MOUSE DISPERSION PHYSICS: Push particles radially away when mouse is nearby
         if (mouseRef.current.active) {
-          const dx = px - mouseRef.current.currX;
-          const dy = py - mouseRef.current.currY;
+          const dx = px - mouseRef.current.x;
+          const dy = py - mouseRef.current.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const dispersionRadius = 180;
+          const dispersionRadius = 160;
 
           if (dist < dispersionRadius && dist > 0) {
             const factor = (dispersionRadius - dist) / dispersionRadius;
             
-            // Radial dispersion force: pushes particles outwards away from the mouse pointer
-            const disperseForce = Math.pow(factor, 1.5) * 60;
-            px += (dx / dist) * disperseForce;
-            py += (dy / dist) * disperseForce;
-
-            // Slow down orbital speed slightly within dispersion field for smooth wave dispersion
-            moveSpeedMultiplier = Math.max(0.4, 1.0 - factor * 0.6);
+            // Quadratic repulsion impulse force
+            const push = Math.pow(factor, 1.5) * 3.2;
+            p.vx += (dx / dist) * push;
+            p.vy += (dy / dist) * push;
           }
         }
 
-        // Apply distance move speed (slowed down when mouse is over)
-        p.distanceRatio -= (p.speed * 0.15) * moveSpeedMultiplier;
+        // Apply physical velocity and elastic recovery back to orbit
+        p.offsetX += p.vx;
+        p.offsetY += p.vy;
+
+        // Damping / Friction decay
+        p.vx *= 0.86;
+        p.vy *= 0.86;
+
+        // Elastic spring back to original galaxy arm position
+        p.offsetX *= 0.88;
+        p.offsetY *= 0.88;
+
+        // Progress orbital migration along spiral arm
+        p.distanceRatio -= p.speed * 0.15;
         if (p.distanceRatio <= 0.02) {
           p.distanceRatio = 0.98 + Math.random() * 0.02;
+          p.offsetX = 0;
+          p.offsetY = 0;
+          p.vx = 0;
+          p.vy = 0;
         }
+
+        // Final drawing coordinates after physical dispersion
+        const drawX = baseX + p.offsetX;
+        const drawY = baseY + p.offsetY;
 
         // Outer arm dispersion opacity fade
         const outerFade = p.distanceRatio > 0.85 
@@ -186,13 +206,13 @@ export const AiGalaxyParticleSection: React.FC = () => {
         ctx.globalAlpha = finalAlpha;
         ctx.fillStyle = p.charcoalHex;
         ctx.beginPath();
-        ctx.arc(px, py, p.size, 0, Math.PI * 2);
+        ctx.arc(drawX, drawY, p.size, 0, Math.PI * 2);
         ctx.fill();
 
         if (p.size > 1.8) {
           ctx.fillStyle = '#000000';
           ctx.beginPath();
-          ctx.arc(px, py, p.size * 0.5, 0, Math.PI * 2);
+          ctx.arc(drawX, drawY, p.size * 0.5, 0, Math.PI * 2);
           ctx.fill();
         }
         ctx.restore();
@@ -208,13 +228,13 @@ export const AiGalaxyParticleSection: React.FC = () => {
         const p2 = particles[(i + 15) % particles.length];
         const a1 = p1.baseAngle + globalRotation + (1 - p1.distanceRatio) * 4.2;
         const r1 = p1.distanceRatio * maxRadius;
-        const x1 = centerX + Math.cos(a1) * r1;
-        const y1 = centerY + Math.sin(a1) * r1;
+        const x1 = centerX + Math.cos(a1) * r1 + p1.offsetX;
+        const y1 = centerY + Math.sin(a1) * r1 + p1.offsetY;
 
         const a2 = p2.baseAngle + globalRotation + (1 - p2.distanceRatio) * 4.2;
         const r2 = p2.distanceRatio * maxRadius;
-        const x2 = centerX + Math.cos(a2) * r2;
-        const y2 = centerY + Math.sin(a2) * r2;
+        const x2 = centerX + Math.cos(a2) * r2 + p2.offsetX;
+        const y2 = centerY + Math.sin(a2) * r2 + p2.offsetY;
 
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
@@ -231,13 +251,13 @@ export const AiGalaxyParticleSection: React.FC = () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', resize);
     };
-  }, []); // Run once on mount to keep animation loop 100% continuous and smooth
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    mouseRef.current.targetX = e.clientX - rect.left;
-    mouseRef.current.targetY = e.clientY - rect.top;
+    mouseRef.current.x = e.clientX - rect.left;
+    mouseRef.current.y = e.clientY - rect.top;
     mouseRef.current.active = true;
   };
 
@@ -250,7 +270,7 @@ export const AiGalaxyParticleSection: React.FC = () => {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative w-full h-[500px] sm:h-[600px] bg-white text-slate-900 overflow-hidden border-t border-slate-200/80 select-none flex items-center justify-center"
+      className="relative w-full h-[500px] sm:h-[600px] bg-white text-slate-900 overflow-hidden border-t border-slate-200/80 select-none flex items-center justify-center cursor-pointer"
     >
       {/* 4K Ultra-Crisp Monochrome Spiral Galaxy Canvas */}
       <canvas 
