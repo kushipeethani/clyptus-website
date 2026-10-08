@@ -148,23 +148,23 @@ export const AiGalaxyParticleSection: React.FC = () => {
 
         let moveSpeedMultiplier = 1.0;
 
-        // Interactive Mouse Influence: SLOW DOWN particles near mouse point
+        // Interactive Mouse Particle Dispersion: Scatter & disperse particles away from cursor
         if (mouseRef.current.active) {
           const dx = px - mouseRef.current.currX;
           const dy = py - mouseRef.current.currY;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const influenceRadius = 180;
+          const dispersionRadius = 180;
 
-          if (dist < influenceRadius && dist > 0) {
-            const factor = (influenceRadius - dist) / influenceRadius;
+          if (dist < dispersionRadius && dist > 0) {
+            const factor = (dispersionRadius - dist) / dispersionRadius;
             
-            // SLOW DOWN motion: Reduce particle speed up to 50% near cursor
-            moveSpeedMultiplier = Math.max(0.5, 1.0 - factor * 0.5);
+            // Radial dispersion force: pushes particles outwards away from the mouse pointer
+            const disperseForce = Math.pow(factor, 1.5) * 60;
+            px += (dx / dist) * disperseForce;
+            py += (dy / dist) * disperseForce;
 
-            // Ultra-gentle slow magnetic micro-drift (max 0.8px)
-            const gentleDrift = factor * 0.8;
-            px += (dx / dist) * gentleDrift;
-            py += (dy / dist) * gentleDrift;
+            // Slow down orbital speed slightly within dispersion field for smooth wave dispersion
+            moveSpeedMultiplier = Math.max(0.4, 1.0 - factor * 0.6);
           }
         }
 
