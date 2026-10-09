@@ -146,7 +146,7 @@ export const FullPageParticleBackground: React.FC = () => {
             const pt = {
               xRatio: x / sampleW,
               yRatio: y / sampleH,
-              color: '#000000',
+              color: isOrange ? '#f15a24' : '#2b3990',
             };
 
             if (isOrange) {
@@ -212,14 +212,29 @@ export const FullPageParticleBackground: React.FC = () => {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseleave', handleMouseLeave);
 
-    let smoothedAssembleFactor = 0;
+    // Helper function to smoothly interpolate hex/rgb colors
+    const lerpColor = (hex1: string, hex2: string, factor: number) => {
+      const f = Math.min(1, Math.max(0, factor));
+      const h1 = hex1.replace('#', '');
+      const h2 = hex2.replace('#', '');
+      const r1 = parseInt(h1.substring(0, 2), 16);
+      const g1 = parseInt(h1.substring(2, 4), 16);
+      const b1 = parseInt(h1.substring(4, 6), 16);
+      const r2 = parseInt(h2.substring(0, 2), 16);
+      const g2 = parseInt(h2.substring(2, 4), 16);
+      const b2 = parseInt(h2.substring(4, 6), 16);
+      const r = Math.round(r1 + (r2 - r1) * f);
+      const g = Math.round(g1 + (g2 - g1) * f);
+      const b = Math.round(b1 + (b2 - b1) * f);
+      return `rgb(${r}, ${g}, ${b})`;
+    };
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
       // Check whether target section above FAQ is in view
       const targetEl = document.getElementById('clyptus-logo-assemble-target');
-      let targetAssembleFactor = 0;
+      let assembleFactor = 0;
       let logoBox = { x: 0, y: 0, w: 0, h: 0 };
 
       if (targetEl) {
@@ -236,8 +251,8 @@ export const FullPageParticleBackground: React.FC = () => {
           // Hold plateau: 100% assembly holds steady across a generous scroll range
           const holdThreshold = 0.65;
           const scaledProgress = Math.min(1, Math.max(0, rawProgress / holdThreshold));
-          // Smooth ease curve
-          targetAssembleFactor = scaledProgress * scaledProgress * (3 - 2 * scaledProgress);
+          // Smooth cubic Hermite ease curve
+          assembleFactor = scaledProgress * scaledProgress * (3 - 2 * scaledProgress);
         }
 
         const maxLogoW = Math.min(rect.width * 0.88, 520);
@@ -252,10 +267,6 @@ export const FullPageParticleBackground: React.FC = () => {
         };
       }
 
-      // Smooth lerp assembly factor (0.06 factor) for gentle, fluid particle motion as user scrolls
-      smoothedAssembleFactor += (targetAssembleFactor - smoothedAssembleFactor) * 0.06;
-      const assembleFactor = Math.abs(smoothedAssembleFactor) < 0.0001 ? 0 : smoothedAssembleFactor;
-
       // Smooth mouse lerp
       if (mouseRef.current.active) {
         mouseRef.current.currX += (mouseRef.current.targetX - mouseRef.current.currX) * 0.1;
@@ -265,9 +276,11 @@ export const FullPageParticleBackground: React.FC = () => {
       const activeTextParticles: { x: number; y: number }[] = [];
 
       particles.forEach((p, idx) => {
-        // Continuous organic drifting
-        p.driftX += p.vx;
-        p.driftY += p.vy;
+        // Continuous organic drifting when not fully assembled
+        if (assembleFactor < 0.98) {
+          p.driftX += p.vx;
+          p.driftY += p.vy;
+        }
 
         // Wrap around viewport edges
         if (p.driftX < -50) p.driftX = width + 50;
@@ -276,11 +289,12 @@ export const FullPageParticleBackground: React.FC = () => {
         if (p.driftY > height + 50) p.driftY = -50;
 
         p.wobbleOffset += p.wobbleSpeed;
-        const wobbleMag = (1 - assembleFactor * 0.9) * 10;
+        // Zero wobble noise at 100% assembly for absolute crispness
+        const wobbleMag = Math.max(0, (1 - assembleFactor)) * 8;
         const wobbleX = Math.sin(p.wobbleOffset) * wobbleMag;
         const wobbleY = Math.cos(p.wobbleOffset * 0.85) * wobbleMag;
 
-        // If assemble is active and logo is loaded, converge toward logo target coordinates
+        // If assemble is active and logo is loaded, converge smoothly toward logo target coordinates
         let renderX = p.driftX + wobbleX;
         let renderY = p.driftY + wobbleY;
 
@@ -288,8 +302,9 @@ export const FullPageParticleBackground: React.FC = () => {
           const targetX = logoBox.x + p.targetRatioX * logoBox.w;
           const targetY = logoBox.y + p.targetRatioY * logoBox.h;
 
-          renderX = p.driftX + (targetX - p.driftX) * assembleFactor + wobbleX;
-          renderY = p.driftY + (targetY - p.driftY) * assembleFactor + wobbleY;
+          const ease = assembleFactor * assembleFactor * (3 - 2 * assembleFactor);
+          renderX = p.driftX + (targetX - p.driftX) * ease;
+          renderY = p.driftY + (targetY - p.driftY) * ease;
         }
 
         // Interactive mouse repulsion (disabled when particles are forming Clyptus)
@@ -310,10 +325,10 @@ export const FullPageParticleBackground: React.FC = () => {
           }
         }
 
-        // Determine particle color (smooth transition from charcoal to pure crisp black)
+        // Smooth color interpolation from charcoal to brand orange/blue
         let particleColor = p.charcoalHex;
-        if (assembleFactor > 0.2 && isLogoLoaded) {
-          particleColor = '#000000';
+        if (assembleFactor > 0.05 && isLogoLoaded) {
+          particleColor = lerpColor(p.charcoalHex, p.logoColor, assembleFactor * 1.8);
         }
 
         // Calculate opacity: 95 ambient background particles stay at ~45%; remaining 2405 fade in smoothly during assembly
@@ -329,9 +344,9 @@ export const FullPageParticleBackground: React.FC = () => {
         }
 
         if (currentAlpha > 0.01) {
-          // Increase size for text particles so typography is thick and legible
-          const isTextParticle = idx >= AMBIENT_COUNT && idx < AMBIENT_COUNT + 1600;
-          const sizeBoost = isTextParticle ? 0.45 : 0.25;
+          // Increase size for blue text particles so typography is thick and legible
+          const isBlueText = p.logoColor === '#2b3990';
+          const sizeBoost = isBlueText ? 0.45 : 0.25;
           const currentSize = p.size * (1 + assembleFactor * sizeBoost);
 
           ctx.save();
@@ -349,17 +364,17 @@ export const FullPageParticleBackground: React.FC = () => {
           }
           ctx.restore();
 
-          if (assembleFactor > 0.5 && isTextParticle) {
+          if (assembleFactor > 0.5 && isBlueText) {
             activeTextParticles.push({ x: renderX, y: renderY });
           }
         }
       });
 
-      // Draw subtle connecting strokes between adjacent text particles for razor-sharp typography
+      // Draw subtle connecting strokes between adjacent blue text particles for razor-sharp typography
       if (assembleFactor > 0.55 && activeTextParticles.length > 0) {
         ctx.save();
         ctx.lineWidth = 1.1;
-        ctx.strokeStyle = '#000000';
+        ctx.strokeStyle = '#2b3990';
         ctx.globalAlpha = Math.min(0.45, (assembleFactor - 0.55) * 1.1);
 
         for (let i = 0; i < activeTextParticles.length; i += 3) {
