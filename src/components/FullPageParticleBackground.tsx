@@ -144,23 +144,22 @@ export const FullPageParticleBackground: React.FC = () => {
               continue;
             }
 
-            // Region classification:
-            // Text region (word "Clyptus", starting with letter C at xRatio >= 0.37) is royal blue (#2b3990)
-            // Outer C-arc (left crescent ring & tail) is 100% pure vibrant orange (#f15a24) - zero blue particles!
-            const isTextRegion = xRatio >= 0.37 && yRatio >= 0.30 && yRatio <= 0.68;
-            const isOrangePixel = r > 160 && b < 110;
+            // Official Clyptus Brandmark Color Mapping:
+            // - Outer C-arc AND capital letter 'C' of "Clyptus" = 100% Vibrant Orange (#f15a24)
+            // - Letters "lyptus" ('l', 'y', 'p', 't', 'u', 's') = 100% Royal Blue (#2b3990)
+            const isLyptusBlueText = xRatio >= 0.44 && yRatio >= 0.30 && yRatio <= 0.68 && r < 140;
 
-            if (isTextRegion && !isOrangePixel) {
+            if (isLyptusBlueText) {
               blueTextValid.push({
                 xRatio,
                 yRatio,
-                color: '#2b3990', // Royal blue for word "Clyptus"
+                color: '#2b3990', // Royal blue for "lyptus"
               });
             } else {
               orangeValid.push({
                 xRatio,
                 yRatio,
-                color: '#f15a24', // 100% pure vibrant orange for outer C-arc
+                color: '#f15a24', // Vibrant orange for outer C-arc & letter 'C'
               });
             }
           }
