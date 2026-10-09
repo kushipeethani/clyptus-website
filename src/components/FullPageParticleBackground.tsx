@@ -212,33 +212,18 @@ export const FullPageParticleBackground: React.FC = () => {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseleave', handleMouseLeave);
 
-    let currentAssembleFactor = 0;
-
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
       // Check whether target section above FAQ is in view
       const targetEl = document.getElementById('clyptus-logo-assemble-target');
-      let targetAssembleFactor = 0;
+      let assembleFactor = 0;
       let logoBox = { x: 0, y: 0, w: 0, h: 0 };
 
       if (targetEl) {
         const rect = targetEl.getBoundingClientRect();
         const vh = height;
-        const centerY = rect.top + rect.height * 0.52;
-        const screenCenterY = vh * 0.5;
-        const distFromCenter = Math.abs(centerY - screenCenterY);
-
-        const holdRadius = vh * 0.65; // Hold 100% assembled across 130% viewport height
-        const fadeRadius = vh * 1.6;  // Extended fade zone for ultra-long hold
-
-        if (distFromCenter <= holdRadius) {
-          targetAssembleFactor = 1.0;
-        } else if (distFromCenter < fadeRadius) {
-          const rawProgress = 1 - ((distFromCenter - holdRadius) / (fadeRadius - holdRadius));
-          // High plateau curve so logo stays mostly intact even near the edges
-          targetAssembleFactor = Math.min(1, Math.max(0, Math.pow(rawProgress, 0.4)));
-        }
+        const navHeight = 80; // Top navigation bar height threshold
 
         const maxLogoW = Math.min(rect.width * 0.88, 520);
         const logoW = Math.max(280, maxLogoW);
@@ -250,11 +235,33 @@ export const FullPageParticleBackground: React.FC = () => {
           w: logoW,
           h: logoH,
         };
-      }
 
-      // Smooth inertia lerp for ultra-smooth, slow dispersion on scroll down
-      currentAssembleFactor += (targetAssembleFactor - currentAssembleFactor) * 0.055;
-      const assembleFactor = currentAssembleFactor;
+        // Assembly starts when section enters viewport from bottom (rect.top <= vh)
+        // Reaches 1.0 (fully assembled) when centered
+        // HOLDS 1.0 (fully assembled logo) as logo moves up towards navbar
+        // Dispersion ONLY starts after top of logo particles touch the top navbar (logoBox.y <= navHeight)
+        const assembleStart = vh;
+        const assembleComplete = vh * 0.45;
+        const disperseStart = navHeight + 25; // Touch point at top navbar
+        const disperseEnd = -logoH * 0.75;
+
+        if (rect.top > assembleComplete) {
+          // Assembling phase as user scrolls into section
+          const raw = 1 - (rect.top - assembleComplete) / (assembleStart - assembleComplete);
+          assembleFactor = Math.min(1, Math.max(0, raw));
+        } else if (logoBox.y > disperseStart) {
+          // Hold 100% fully assembled state while moving up screen towards navbar
+          assembleFactor = 1.0;
+        } else {
+          // Dispersion phase: ONLY starts after top logo particles touch the navbar!
+          const raw = (logoBox.y - disperseEnd) / (disperseStart - disperseEnd);
+          assembleFactor = Math.min(1, Math.max(0, raw));
+        }
+
+        // Smooth cubic ease curve for seamless transitions
+        assembleFactor = Math.min(1, Math.max(0, assembleFactor));
+        assembleFactor = assembleFactor * assembleFactor * (3 - 2 * assembleFactor);
+      }
 
       // Smooth mouse lerp
       if (mouseRef.current.active) {
