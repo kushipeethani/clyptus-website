@@ -1,96 +1,289 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
+import gsap from 'gsap';
+import logoImg from '../assets/logo.png';
 
 interface CinematicIntroProps {
   onComplete: () => void;
   onSkip: () => void;
 }
 
+interface Particle {
+  x: number;
+  y: number;
+  targetX: number;
+  targetY: number;
+  originX: number;
+  originY: number;
+  color: string;
+  size: number;
+  delay: number;
+}
+
 export const CinematicIntro: React.FC<CinematicIntroProps> = ({
   onComplete,
   onSkip,
 }) => {
-  // Animation phases: 'initial' | 'fadeInLogo' | 'fadeInTagline' | 'hold' | 'zoomOut' | 'done'
-  const [phase, setPhase] = useState<'initial' | 'fadeInLogo' | 'fadeInTagline' | 'hold' | 'zoomOut' | 'done'>('initial');
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const portalGlowRef = useRef<HTMLDivElement>(null);
+  const flashOverlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Sequence Timeline
-    const timer1 = setTimeout(() => setPhase('fadeInLogo'), 300);
-    const timer2 = setTimeout(() => setPhase('fadeInTagline'), 900);
-    const timer3 = setTimeout(() => setPhase('hold'), 1600);
-    const timer4 = setTimeout(() => setPhase('zoomOut'), 2800);
-    const timer5 = setTimeout(() => {
-      setPhase('done');
-      onComplete();
-    }, 3700);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let isFullyLocked = false;
+    const particles: Particle[] = [];
+
+    const logicalWidth = 800;
+    const logicalHeight = 450;
+
+    const dpr = Math.min(window.devicePixelRatio || 2, 3);
+    canvas.width = logicalWidth * dpr;
+    canvas.height = logicalHeight * dpr;
+    ctx.scale(dpr, dpr);
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = logoImg;
+
+    img.onload = () => {
+      const offCanvas = document.createElement('canvas');
+      const offCtx = offCanvas.getContext('2d');
+      if (!offCtx) return;
+
+      const targetLogoWidth = 460;
+      const targetLogoHeight = (img.height / img.width) * targetLogoWidth;
+      offCanvas.width = targetLogoWidth;
+      offCanvas.height = targetLogoHeight;
+
+      offCtx.drawImage(img, 0, 0, targetLogoWidth, targetLogoHeight);
+      const imgData = offCtx.getImageData(0, 0, targetLogoWidth, targetLogoHeight).data;
+
+      const offsetX = (logicalWidth - targetLogoWidth) / 2;
+      const offsetY = (logicalHeight - targetLogoHeight) / 2;
+
+      const subtitleStartX = targetLogoWidth * 0.495;
+      const subtitleStartY = targetLogoHeight * 0.695;
+      const subtitleEndY = targetLogoHeight * 0.76;
+      const subtitleWidth = targetLogoWidth - subtitleStartX;
+
+      const step = 2;
+      for (let y = 0; y < targetLogoHeight; y += step) {
+        for (let x = 0; x < targetLogoWidth; x += step) {
+          const index = (Math.floor(y) * targetLogoWidth + Math.floor(x)) * 4;
+          const alpha = imgData[index + 3];
+
+          if (alpha > 85) {
+            const r = imgData[index];
+            const g = imgData[index + 1];
+            const isOrange = r > 160 && g < 130;
+
+            const isInSubtitleArea = !isOrange && y >= subtitleStartY && x >= subtitleStartX;
+            if (isInSubtitleArea) {
+              continue;
+            }
+
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 250 + Math.random() * 250;
+            const originX = logicalWidth / 2 + Math.cos(angle) * distance;
+            const originY = logicalHeight / 2 + Math.sin(angle) * distance;
+
+            const progressRatio = x / targetLogoWidth;
+            const letterDelay = isOrange ? 0.2 : 0.85 + progressRatio * 2.3;
+
+            particles.push({
+              x: originX,
+              y: originY,
+              targetX: offsetX + x,
+              targetY: offsetY + y,
+              originX,
+              originY,
+              color: isOrange ? '#EA580C' : '#2D2A85',
+              size: isOrange ? 1.35 : 1.15,
+              delay: letterDelay,
+            });
+          }
+        }
+      }
+
+      const animState = {
+        time: 0,
+        subtitleReveal: 0,
+      };
+
+      const tl = gsap.timeline();
+
+      // 1. Particle assembly across 3.3s
+      tl.to(animState, {
+        time: 4.0,
+        duration: 3.3,
+        ease: 'power1.out',
+      });
+
+      // 2. Subtitle sweep starting directly under 'p'
+      tl.to(
+        animState,
+        {
+          subtitleReveal: 1,
+          duration: 1.2,
+          ease: 'power2.out',
+        },
+        1.9
+      );
+
+      // 3. Instant paint swap to true master image
+      tl.add(() => {
+        isFullyLocked = true;
+        cancelAnimationFrame(animationFrameId);
+        ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+        ctx.drawImage(img, offsetX, offsetY, targetLogoWidth, targetLogoHeight);
+      });
+
+      // 4. HOLD THE CRISP LOGO FOR EXACTLY 1.0 SECOND
+      tl.to({}, { duration: 1.0 });
+
+      // 5. Glow effect triggers immediately after the 1-second hold
+      tl.to(
+        portalGlowRef.current,
+        {
+          scale: 4.5,
+          opacity: 1,
+          filter: 'blur(30px)',
+          duration: 0.85,
+          ease: 'power3.in',
+        }
+      );
+
+      // Logo blends into glow smoothly
+      tl.to(
+        canvasRef.current,
+        {
+          scale: 1.08,
+          filter: 'blur(10px) brightness(1.3)',
+          opacity: 0,
+          duration: 0.7,
+          ease: 'power2.in',
+        },
+        '<'
+      );
+
+      // White flash dissolve wash
+      tl.to(
+        flashOverlayRef.current,
+        {
+          opacity: 1,
+          duration: 0.45,
+          ease: 'power2.in',
+        },
+        '-=0.35'
+      );
+
+      // Clean fade out into website
+      tl.to(containerRef.current, {
+        opacity: 0,
+        duration: 0.5,
+        ease: 'power2.out',
+        onComplete: () => {
+          onComplete();
+        },
+      });
+
+      // Render loop
+      const render = () => {
+        if (isFullyLocked) return;
+        ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          const localProgress = Math.max(0, Math.min(1, (animState.time - p.delay) / 0.75));
+
+          const eased = 1 - Math.pow(1 - localProgress, 3);
+          p.x = p.originX + (p.targetX - p.originX) * eased;
+          p.y = p.originY + (p.targetY - p.originY) * eased;
+
+          if (localProgress > 0) {
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        if (animState.subtitleReveal > 0) {
+          ctx.save();
+          ctx.beginPath();
+          const clipX = offsetX + subtitleStartX;
+          const clipY = offsetY + subtitleStartY - 2;
+          const clipW = subtitleWidth * animState.subtitleReveal;
+          const clipH = subtitleEndY - subtitleStartY + 6;
+
+          ctx.rect(clipX, clipY, clipW, clipH);
+          ctx.clip();
+
+          ctx.drawImage(img, offsetX, offsetY, targetLogoWidth, targetLogoHeight);
+          ctx.restore();
+        }
+
+        animationFrameId = requestAnimationFrame(render);
+      };
+
+      render();
+    };
 
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-      clearTimeout(timer4);
-      clearTimeout(timer5);
+      isFullyLocked = true;
+      cancelAnimationFrame(animationFrameId);
     };
   }, [onComplete]);
 
-  if (phase === 'done') return null;
-
-  const isLogoVisible = phase === 'fadeInLogo' || phase === 'fadeInTagline' || phase === 'hold';
-  const isTaglineVisible = phase === 'fadeInTagline' || phase === 'hold';
-  const isZoomingOut = phase === 'zoomOut';
-
-  // Dynamic zoom scale calculation per phase
-  let zoomClass = 'scale-[0.75] opacity-0 blur-md';
-  if (phase === 'fadeInLogo') zoomClass = 'scale-[0.95] opacity-90 blur-0';
-  else if (phase === 'fadeInTagline') zoomClass = 'scale-[1.0] opacity-100 blur-0';
-  else if (phase === 'hold') zoomClass = 'scale-[1.10] opacity-100 blur-0';
-  else if (phase === 'zoomOut') zoomClass = 'scale-[1.50] opacity-0 blur-xl';
-
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-white select-none transition-all duration-1000 ease-in-out ${
-        isZoomingOut ? 'bg-opacity-0 pointer-events-none' : 'bg-opacity-100'
-      }`}
+      ref={containerRef}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white select-none overflow-hidden"
     >
-      {/* Soft Ambient Radial Background Glow */}
-      <div 
-        className={`absolute inset-0 pointer-events-none transition-all duration-1000 ${
-          isLogoVisible ? 'opacity-100 scale-110' : 'opacity-0 scale-90'
-        }`}
+      {/* Background ambient gradient */}
+      <div
+        className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at 50% 45%, rgba(56, 189, 248, 0.15) 0%, rgba(99, 102, 241, 0.08) 40%, transparent 70%)',
+          background:
+            'radial-gradient(circle at 50% 50%, rgba(234, 88, 12, 0.05) 0%, rgba(45, 42, 133, 0.05) 45%, rgba(255, 255, 255, 0) 70%)',
         }}
       />
 
-      {/* Center Intro Branding Box with Camera Zoom-Through Effect */}
-      <div 
-        className={`relative z-10 flex flex-col items-center text-center px-6 max-w-xl transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${zoomClass}`}
-      >
-        {/* Clyptus Logo with Pulsing Glow */}
-        <div className="flex items-center justify-center group">
-          <img
-            src="/logo.png"
-            alt="Clyptus Logo"
-            className="h-20 sm:h-24 max-w-full object-contain drop-shadow-[0_10px_30px_rgba(2,132,199,0.35)] transition-transform duration-700 hover:scale-105"
-          />
-        </div>
+      {/* Portal Energy Glow Element */}
+      <div
+        ref={portalGlowRef}
+        className="absolute w-[240px] h-[240px] rounded-full pointer-events-none opacity-0 scale-50 z-10"
+        style={{
+          background:
+            'radial-gradient(circle, rgba(234, 88, 12, 0.8) 0%, rgba(45, 42, 133, 0.5) 45%, rgba(255, 255, 255, 0) 70%)',
+          boxShadow: '0 0 100px 40px rgba(234, 88, 12, 0.45)',
+        }}
+      />
 
-        {/* Tagline Reveal */}
-        <p
-          className={`mt-5 text-sm sm:text-base font-bold tracking-widest text-slate-600 transition-all duration-1000 ease-out ${
-            isTaglineVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-          }`}
-        >
-          Technology<span className="text-sky-600 font-extrabold mx-2.5">•</span>Talent<span className="text-sky-600 font-extrabold mx-2.5">•</span>Transformation
-        </p>
+      {/* Flash overlay for smooth transition into hero */}
+      <div
+        ref={flashOverlayRef}
+        className="absolute inset-0 bg-white pointer-events-none opacity-0 z-20"
+      />
+
+      {/* Assembly Canvas */}
+      <div className="relative flex items-center justify-center w-[800px] h-[450px] z-10">
+        <canvas
+          ref={canvasRef}
+          style={{ width: '800px', height: '450px' }}
+          className="w-[800px] h-[450px] pointer-events-none"
+        />
       </div>
 
-      {/* Skip Button on Bottom Right */}
+      {/* Skip Button */}
       <button
-        onClick={() => {
-          setPhase('done');
-          onSkip();
-        }}
-        className="absolute bottom-8 right-8 z-20 text-xs font-mono text-slate-600 hover:text-sky-600 hover:border-sky-400 transition-all uppercase tracking-widest px-4 py-2 rounded-full bg-white/90 border border-slate-200 backdrop-blur-md shadow-md"
+        onClick={onSkip}
+        className="absolute bottom-8 right-8 z-30 text-xs font-mono text-slate-500 hover:text-orange-600 hover:border-orange-400 transition-all uppercase tracking-widest px-4 py-2 rounded-full bg-white/90 border border-slate-200 backdrop-blur-md shadow-sm"
       >
         Skip Intro →
       </button>

@@ -77,6 +77,11 @@ const PORTFOLIO_CARDS: ProjectCard[] = [
 
 ];
 
+// Continuous linear card slide progress as user scrolls down without freeze plateaus
+const getFrozenCardsProgress = (rawP: number): number => {
+  return rawP;
+};
+
 export const RisingSlideCardsSection: React.FC = () => {
   const trackRef = useRef<HTMLDivElement>(null);
   const [rawScrollProgress, setRawScrollProgress] = useState<number>(0);
@@ -117,7 +122,7 @@ export const RisingSlideCardsSection: React.FC = () => {
     let current = smoothScrollProgress;
 
     const loop = () => {
-      current += (rawScrollProgress - current) * 0.04;
+      current += (rawScrollProgress - current) * 0.14;
       setSmoothScrollProgress(current);
       animId = requestAnimationFrame(loop);
     };
@@ -129,26 +134,27 @@ export const RisingSlideCardsSection: React.FC = () => {
   const totalCards = PORTFOLIO_CARDS.length;
   const CARD_WIDTH_VW = 50;
 
-  // Breakdown of scroll phases over 2800vh track:
-  // Phase 1 (0.00 -> 0.68): Feature Cards Rise-Up & Slide-Left Animation (cardsProgress 0 -> 1)
-  // Phase 2 (0.68 -> 0.80): Curtain Transition - Cards Layer slides completely left (curtainOpenProgress 0 -> 1)
-  // Phase 3 (0.80 -> 1.00): 3D Milestone Timeline driving animation (timelineDriveProgress 0 -> 1)
+  // Breakdown of scroll phases over 1600vh track:
+  // Phase 1 (0.00 -> 0.38): Feature Cards Freeze & Slide Animation (Cards 1 & 2 freeze first, then 3 & 4, then 5 & 6)
+  // Phase 2 (0.38 -> 0.45): Curtain Transition - Cards Layer slides completely left (curtainOpenProgress 0 -> 1)
+  // Phase 3 (0.45 -> 1.00): 3D Milestone Timeline driving animation (generous 55% budget for a smooth drive)
 
-  const cardsProgress = Math.min(1, smoothScrollProgress / 0.68);
-  const curtainOpenProgress = Math.max(0, Math.min(1, (smoothScrollProgress - 0.68) / 0.12));
+  const rawCardsP = Math.min(1, smoothScrollProgress / 0.38);
+  const cardsProgress = getFrozenCardsProgress(rawCardsP);
+  const curtainOpenProgress = Math.max(0, Math.min(1, (smoothScrollProgress - 0.38) / 0.07));
   const isCurtainFullyOpen = curtainOpenProgress >= 1;
 
   // Guarantee 3D Timeline animation stays strictly at 0 until curtain transition is 100% complete
   const timelineDriveProgress = !isCurtainFullyOpen 
     ? 0 
-    : Math.max(0, Math.min(1, (smoothScrollProgress - 0.80) / 0.20));
+    : Math.max(0, Math.min(1, (smoothScrollProgress - 0.45) / 0.55));
 
   const maxShiftVw = (totalCards - 2) * CARD_WIDTH_VW; 
   const currentShiftVw = cardsProgress * maxShiftVw;
 
   return (
-    /* Outer Pinned Scroll Track (2800vh holds cards + curtain reveal + 3D road drive) */
-    <div ref={trackRef} className="relative w-full h-[2800vh] bg-[#e9e8e3] select-none font-sans border-t border-slate-300/60">
+    /* Outer Pinned Scroll Track (1600vh gives ample slow-motion track for 3D road timeline) */
+    <div ref={trackRef} className="relative w-full h-[1600vh] bg-[#e9e8e3] select-none font-sans border-t border-slate-300/60">
       {/* Sticky Full-Screen Viewport Stage */}
       <div className="sticky top-0 w-full h-screen overflow-hidden">
         

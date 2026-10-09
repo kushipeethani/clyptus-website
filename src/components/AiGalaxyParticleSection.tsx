@@ -220,12 +220,12 @@ export const AiGalaxyParticleSection: React.FC<AiGalaxyParticleSectionProps> = (
           p.distanceRatio = 0.98 + Math.random() * 0.02;
         }
 
-        // Particle Alpha calculation (disappears completely as text appears on scroll down)
+        // Particle Alpha calculation (retains ~45% background visibility when text appears)
         const outerFade = p.distanceRatio > 0.85 
           ? (1 - p.distanceRatio) / 0.15 
           : (p.distanceRatio < 0.1 ? p.distanceRatio / 0.1 : 1);
 
-        const scrollAlphaFade = Math.max(0, 1 - Math.min(1, progress / 0.55));
+        const scrollAlphaFade = Math.max(0.45, 1 - Math.min(0.55, progress * 0.7));
         const finalAlpha = Math.max(0, Math.min(1, p.alpha * outerFade * scrollAlphaFade));
 
         // Draw particle dot only when visible

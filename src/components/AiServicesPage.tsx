@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { AiGalaxyParticleSection } from './AiGalaxyParticleSection';
+import { FullPageParticleBackground } from './FullPageParticleBackground';
 import { 
   BarChart3, 
   Workflow, 
@@ -24,12 +25,10 @@ interface AiServicesPageProps {
 }
 
 export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContact }) => {
-  const [isVisibleSteps, setIsVisibleSteps] = useState(false);
-  const [isVisiblePillars, setIsVisiblePillars] = useState(false);
-  const [isVisibleCatalog, setIsVisibleCatalog] = useState(false);
+  const [isVisibleSteps, setIsVisibleSteps] = useState(true);
+  const [isVisibleCatalog, setIsVisibleCatalog] = useState(true);
 
   const stepsRef = useRef<HTMLDivElement>(null);
-  const pillarsTrackRef = useRef<HTMLDivElement>(null);
   const catalogRef = useRef<HTMLDivElement>(null);
 
   // Set Page Meta Title & Description & Observers
@@ -43,45 +42,19 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
       );
     }
 
-    // Sticky Scroll Track RAF listener for Practice Capabilities freeze & spread animation
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          if (pillarsTrackRef.current) {
-            const rect = pillarsTrackRef.current.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-            const totalDist = rect.height - viewportHeight;
-
-            if (totalDist > 0) {
-              const scrolled = -rect.top;
-              const progress = scrolled / totalDist;
-              // Freeze & spread cards while pinned inside track
-              setIsVisiblePillars(progress >= 0.05 && progress <= 0.95);
-            }
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-
-    // IntersectionObserver for steps and catalog
+    // IntersectionObserver for steps and catalog (keep permanently visible once intersected)
     const observerOptions = { 
-      threshold: 0.15,
-      rootMargin: '0px 0px -60px 0px'
+      threshold: 0.05,
+      rootMargin: '0px 0px 100px 0px'
     };
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.target === stepsRef.current) {
-          setIsVisibleSteps(entry.isIntersecting);
+        if (entry.target === stepsRef.current && entry.isIntersecting) {
+          setIsVisibleSteps(true);
         }
-        if (entry.target === catalogRef.current) {
-          setIsVisibleCatalog(entry.isIntersecting);
+        if (entry.target === catalogRef.current && entry.isIntersecting) {
+          setIsVisibleCatalog(true);
         }
       });
     }, observerOptions);
@@ -90,7 +63,6 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
     if (catalogRef.current) observer.observe(catalogRef.current);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
       observer.disconnect();
     };
   }, []);
@@ -259,8 +231,10 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
   ];
 
   return (
-    <div className="w-full bg-slate-50 text-slate-900 font-sans selection:bg-sky-500/20 selection:text-sky-800">
-      
+    <div className="relative w-full bg-white text-slate-900 font-sans selection:bg-sky-500/20 selection:text-sky-800">
+      {/* FULL-PAGE DISPERSED PARTICLES BACKGROUND */}
+      <FullPageParticleBackground />
+
       {/* ---------------------------------------------------- */}
       {/* MONOCHROME 4K MINIMALIST SPIRAL GALAXY GRAPHIC      */}
       {/* ---------------------------------------------------- */}
@@ -270,102 +244,81 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
 
 
       {/* ---------------------------------------------------- */}
-      {/* 3 CORE AI PRACTICE PILLARS - STICKY SCROLL PINNED    */}
+      {/* 3 CORE AI PRACTICE PILLARS - UNPINNED GRID           */}
       {/* ---------------------------------------------------- */}
-      <div ref={pillarsTrackRef} className="relative h-[160vh]">
-        <div className="sticky top-0 h-screen w-full flex flex-col justify-center px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto overflow-hidden pointer-events-auto">
-          
-          <div className="text-center max-w-3xl mx-auto mb-12 opacity-100">
-            <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
-              PRACTICE CAPABILITIES
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 mb-4">
-              Core Enterprise <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600">AI Capabilities</span>
-            </h2>
-            <p className="text-sm sm:text-base text-slate-600 font-medium">
-              Explore our core practices designed to turn raw operational data into autonomous enterprise intelligence.
-            </p>
-          </div>
-
-          {/* 3 Interactive Cards Grid with Pinned Center-Spread Slide Animation (Always Opaque) */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
-            {aiServicesList.map((srv, idx) => {
-              const IconComp = srv.icon;
-
-              let animationClasses = '';
-              let badgeClasses = 'bg-sky-50 text-sky-700 border-sky-200';
-              let iconClasses = 'bg-sky-50 border-sky-100 text-sky-600 group-hover:bg-sky-600 group-hover:text-white';
-              let hoverTitle = 'group-hover:text-sky-600';
-              let hoverBorder = 'hover:border-sky-400';
-
-              if (idx === 0) {
-                animationClasses = isVisiblePillars
-                  ? 'opacity-100 translate-x-0 translate-y-0 scale-100 rotate-0 z-10'
-                  : 'opacity-100 lg:translate-x-[calc(100%+2rem)] translate-y-4 scale-90 -rotate-3 z-30';
-                badgeClasses = 'bg-sky-50 text-sky-700 border-sky-200';
-                iconClasses = 'bg-sky-50 border-sky-100 text-sky-600 group-hover:bg-sky-600 group-hover:text-white';
-                hoverTitle = 'group-hover:text-sky-600';
-                hoverBorder = 'hover:border-sky-400';
-              } else if (idx === 1) {
-                animationClasses = isVisiblePillars
-                  ? 'opacity-100 translate-y-0 scale-100 z-20'
-                  : 'opacity-100 translate-y-8 scale-90 z-20';
-                badgeClasses = 'bg-indigo-50 text-indigo-700 border-indigo-200';
-                iconClasses = 'bg-indigo-50 border-indigo-100 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white';
-                hoverTitle = 'group-hover:text-indigo-600';
-                hoverBorder = 'hover:border-indigo-400';
-              } else if (idx === 2) {
-                animationClasses = isVisiblePillars
-                  ? 'opacity-100 translate-x-0 translate-y-0 scale-100 rotate-0 z-10'
-                  : 'opacity-100 lg:-translate-x-[calc(100%+2rem)] translate-y-4 scale-90 rotate-3 z-30';
-                badgeClasses = 'bg-purple-50 text-purple-700 border-purple-200';
-                iconClasses = 'bg-purple-50 border-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white';
-                hoverTitle = 'group-hover:text-purple-600';
-                hoverBorder = 'hover:border-purple-400';
-              }
-
-              return (
-                <div
-                  key={srv.number}
-                  style={{
-                    transitionDelay: isVisiblePillars ? `${idx * 120}ms` : '0ms',
-                  }}
-                  className={`group relative p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-2xl hover:-translate-y-2 ${hoverBorder} transition-all duration-[1800ms] ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col justify-between overflow-hidden ${animationClasses}`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-6">
-                      <span className="text-3xl font-black font-mono tracking-tighter text-slate-300 group-hover:text-slate-900 transition-colors">
-                        {srv.number}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-mono font-extrabold tracking-wider uppercase border ${badgeClasses}`}>
-                        {srv.badge}
-                      </span>
-                    </div>
-
-                    <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-xs ${iconClasses}`}>
-                      <IconComp className="w-7 h-7 stroke-[2]" />
-                    </div>
-
-                    <h3 className={`text-2xl font-black text-slate-900 tracking-tight mb-3 transition-colors ${hoverTitle}`}>
-                      {srv.title}
-                    </h3>
-
-                    <p className="text-sm text-slate-600 leading-relaxed font-medium mb-6">
-                      {srv.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      <section className="relative z-10 py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto overflow-hidden bg-transparent">
+        <div className="text-center max-w-3xl mx-auto mb-16 relative z-10">
+          <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
+            PRACTICE CAPABILITIES
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 mb-4">
+            Core Enterprise <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600">AI Capabilities</span>
+          </h2>
+          <p className="text-sm sm:text-base text-slate-600 font-medium">
+            Explore our core practices designed to turn raw operational data into autonomous enterprise intelligence.
+          </p>
         </div>
-      </div>
+
+        {/* 3 Interactive Cards Grid (Clean 3-Column Layout) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
+          {aiServicesList.map((srv, idx) => {
+            const IconComp = srv.icon;
+
+            let badgeClasses = 'bg-sky-50 text-sky-700 border-sky-200';
+            let iconClasses = 'bg-sky-50 border-sky-100 text-sky-600 group-hover:bg-sky-600 group-hover:text-white';
+            let hoverTitle = 'group-hover:text-sky-600';
+            let hoverBorder = 'hover:border-sky-400';
+
+            if (idx === 1) {
+              badgeClasses = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+              iconClasses = 'bg-indigo-50 border-indigo-100 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white';
+              hoverTitle = 'group-hover:text-indigo-600';
+              hoverBorder = 'hover:border-indigo-400';
+            } else if (idx === 2) {
+              badgeClasses = 'bg-purple-50 text-purple-700 border-purple-200';
+              iconClasses = 'bg-purple-50 border-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white';
+              hoverTitle = 'group-hover:text-purple-600';
+              hoverBorder = 'hover:border-purple-400';
+            }
+
+            return (
+              <div
+                key={srv.number}
+                className={`group relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-2xl hover:-translate-y-2 ${hoverBorder} transition-all duration-300 flex flex-col justify-between overflow-hidden`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="text-3xl font-black font-mono tracking-tighter text-slate-300 group-hover:text-slate-900 transition-colors">
+                      {srv.number}
+                    </span>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-mono font-extrabold tracking-wider uppercase border ${badgeClasses}`}>
+                      {srv.badge}
+                    </span>
+                  </div>
+
+                  <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-xs ${iconClasses}`}>
+                    <IconComp className="w-7 h-7 stroke-[2]" />
+                  </div>
+
+                  <h3 className={`text-2xl font-black text-slate-900 tracking-tight mb-3 transition-colors ${hoverTitle}`}>
+                    {srv.title}
+                  </h3>
+
+                  <p className="text-sm text-slate-600 leading-relaxed font-medium mb-6">
+                    {srv.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
 
       {/* ---------------------------------------------------- */}
       {/* FULL SERVICES & DATA PLATFORMS CATALOG               */}
       {/* ---------------------------------------------------- */}
-      <section ref={catalogRef} className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-slate-100/80 border-y border-slate-200/80 overflow-hidden">
+      <section ref={catalogRef} className="relative z-10 py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-transparent overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-700 transform ${isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
@@ -379,9 +332,9 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
             {/* Category 1: Generative AI & Automation */}
-            <div className={`p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 hover:shadow-lg hover:-translate-y-1 hover:border-sky-400 ${
+            <div className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 hover:shadow-lg hover:-translate-y-1 hover:border-sky-400 ${
               isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
             }`}>
               <div>
@@ -401,7 +354,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             </div>
 
             {/* Category 2: Data Services & Platforms */}
-            <div className={`p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 delay-150 hover:shadow-lg hover:-translate-y-1 hover:border-indigo-400 ${
+            <div className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 delay-150 hover:shadow-lg hover:-translate-y-1 hover:border-indigo-400 ${
               isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
             }`}>
               <div>
@@ -421,7 +374,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             </div>
 
             {/* Category 3: Model Types */}
-            <div className={`p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 delay-300 hover:shadow-lg hover:-translate-y-1 hover:border-purple-400 ${
+            <div className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 delay-300 hover:shadow-lg hover:-translate-y-1 hover:border-purple-400 ${
               isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
             }`}>
               <div>
@@ -447,7 +400,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
       {/* ---------------------------------------------------- */}
       {/* HOW AN AI PROJECT RUNS (5 DELIVERY STAGES)           */}
       {/* ---------------------------------------------------- */}
-      <section ref={stepsRef} className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto overflow-hidden">
+      <section ref={stepsRef} className="relative z-10 py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto overflow-hidden bg-transparent">
         <div className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-700 transform ${isVisibleSteps ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
             DELIVERY METHODOLOGY
@@ -461,7 +414,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
         </div>
 
         {/* 5 Stage Connected Grid with Scroll-Down Staggered Animation */}
-        <div className="relative">
+        <div className="relative z-10">
           <div className="hidden md:block absolute top-1/2 left-8 right-8 h-0.5 bg-gradient-to-r from-sky-300 via-indigo-300 to-purple-300 -translate-y-6 z-0 pointer-events-none" />
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 relative z-10">
@@ -482,7 +435,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
                 <div 
                   key={st.step}
                   style={{ transitionDelay: `${isVisibleSteps ? delayMs : 0}ms` }}
-                  className={`group p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 ease-out transform ${stepStyles.hoverBorder} hover:shadow-xl hover:-translate-y-2 cursor-pointer ${
+                  className={`group relative z-10 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 ease-out transform ${stepStyles.hoverBorder} hover:shadow-xl hover:-translate-y-2 cursor-pointer ${
                     isVisibleSteps ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-12 scale-95'
                   }`}
                 >
@@ -515,7 +468,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
       {/* ---------------------------------------------------- */}
       {/* INNOVATION LAB (EXPLORING TOMORROW - R&D RESEARCH)   */}
       {/* ---------------------------------------------------- */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-slate-100/80 text-slate-900 border-y border-slate-200/80">
+      <section className="relative z-10 py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-transparent text-slate-900">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
             <div>
@@ -537,11 +490,11 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 relative z-10">
             {innovationLabAreas.map((area, idx) => (
               <div
                 key={idx}
-                className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-purple-400 hover:shadow-md transition-all flex flex-col justify-between group"
+                className="relative z-10 p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-purple-400 hover:shadow-md transition-all flex flex-col justify-between group"
               >
                 <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-200 text-purple-600 flex items-center justify-center mb-3 group-hover:bg-purple-600 group-hover:text-white transition-all">
                   <Bot className="w-4 h-4" />
@@ -560,7 +513,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
       {/* ---------------------------------------------------- */}
       {/* VERIFIED SECTOR CASE STUDIES (PROJECT LINES)          */}
       {/* ---------------------------------------------------- */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto">
+      <section className="relative z-10 py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto bg-transparent">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
             INDUSTRY SOLUTIONS
@@ -570,7 +523,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
           {industryProjects.map((proj, idx) => {
             const SectorIcon = proj.icon;
 
@@ -584,7 +537,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             return (
               <div
                 key={idx}
-                className={`p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 ${sectorStyles.hoverBorder}`}
+                className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 ${sectorStyles.hoverBorder}`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
@@ -617,9 +570,39 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
 
 
       {/* ---------------------------------------------------- */}
+      {/* CLYPTUS BRANDMARK BACKGROUND PARTICLE ASSEMBLE STAGE */}
+      {/* ---------------------------------------------------- */}
+      <section 
+        id="clyptus-logo-assemble-target" 
+        className="relative z-10 py-16 sm:py-24 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto overflow-hidden bg-transparent select-none text-center"
+      >
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 text-orange-700 text-xs font-mono font-extrabold uppercase mb-3 shadow-2xs">
+          <Sparkles className="w-3.5 h-3.5 text-orange-600 animate-pulse" />
+          <span>SIGNATURE BRANDMARK</span>
+        </div>
+
+        <p className="text-xs sm:text-sm font-mono tracking-widest text-slate-500 uppercase font-semibold mb-4">
+          Background particles coalesce to form the brandmark
+        </p>
+
+        {/* Target Stage Box where background particles coalesce into the official Clyptus logo */}
+        <div className="relative w-full h-[280px] sm:h-[350px] md:h-[400px] mx-auto flex items-center justify-center pointer-events-auto" />
+
+        <div className="mt-4 flex flex-col items-center gap-2">
+          <div className="text-xs sm:text-sm font-mono tracking-[0.28em] font-extrabold text-[#2b3990] uppercase bg-slate-50/80 px-4 py-1.5 rounded-full border border-slate-200/80 shadow-2xs">
+            SOFTWARE SOLUTIONS PVT LTD.
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium max-w-2xl mx-auto mt-1">
+            Enterprise AI & Cloud Engineering Solutions
+          </p>
+        </div>
+      </section>
+
+
+      {/* ---------------------------------------------------- */}
       {/* FREQUENTLY ASKED QUESTIONS                           */}
       {/* ---------------------------------------------------- */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-6xl mx-auto">
+      <section className="relative z-10 py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-6xl mx-auto bg-transparent">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
             CLEAR ANSWERS
@@ -629,11 +612,11 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
           {faqList.map((faq, idx) => (
             <div
               key={idx}
-              className="group p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md hover:border-sky-300 transition-all flex flex-col justify-between"
+              className="group relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md hover:border-sky-300 transition-all flex flex-col justify-between"
             >
               <div>
                 <h3 className="text-lg font-bold text-slate-900 tracking-tight mb-4 group-hover:text-sky-600 transition-colors">
@@ -646,6 +629,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             </div>
           ))}
         </div>
-      </section>    </div>
+      </section>
+    </div>
   );
 };

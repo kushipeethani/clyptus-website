@@ -22,12 +22,12 @@ const applyMilestoneSlowing = (rawP: number): number => {
   let p = rawP;
   
   for (const m of milestones) {
-    const R = 0.055; // Window around exact screenshot position
+    const R = 0.08; // Generous window around each milestone image for pronounced slowdown
     const dist = rawP - m;
     if (Math.abs(dist) < R) {
       const t = dist / R; // range [-1, 1]
-      // Smooth S-curve compression: slows scrolling by ~60% right at the exact screenshot frame
-      const compressed = 0.4 * t + 0.6 * Math.pow(t, 3);
+      // Strong 85% deceleration at milestone image center so users have ample time to view each card
+      const compressed = 0.15 * t + 0.85 * Math.pow(t, 3);
       const shift = (compressed - t) * R;
       p += shift;
     }
@@ -334,7 +334,7 @@ export const RoadTimelineSection: React.FC<RoadTimelineSectionProps> = ({ extern
         targetMouseX = 0;
         targetMouseY = 0;
       } else {
-        currentProgress += (targetProgressRef.current - currentProgress) * 0.02;
+        currentProgress += (targetProgressRef.current - currentProgress) * 0.045;
         mouseX += (targetMouseX - mouseX) * 0.05;
         mouseY += (targetMouseY - mouseY) * 0.05;
       }
