@@ -574,7 +574,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
       {/* ---------------------------------------------------- */}
       <section 
         id="clyptus-logo-assemble-target" 
-        className="relative z-10 py-16 sm:py-24 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto overflow-hidden bg-transparent select-none text-center"
+        className="relative z-10 py-24 sm:py-36 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto overflow-hidden bg-transparent select-none text-center"
       >
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 text-orange-700 text-xs font-mono font-extrabold uppercase mb-3 shadow-2xs">
           <Sparkles className="w-3.5 h-3.5 text-orange-600 animate-pulse" />
@@ -586,7 +586,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
         </p>
 
         {/* Target Stage Box where background particles coalesce into the official Clyptus logo */}
-        <div className="relative w-full h-[280px] sm:h-[350px] md:h-[400px] mx-auto flex items-center justify-center pointer-events-auto" />
+        <div className="relative w-full h-[320px] sm:h-[400px] md:h-[460px] mx-auto flex items-center justify-center pointer-events-auto" />
 
         <div className="mt-4 flex flex-col items-center gap-2">
           <div className="text-xs sm:text-sm font-mono tracking-[0.28em] font-extrabold text-[#2b3990] uppercase bg-slate-50/80 px-4 py-1.5 rounded-full border border-slate-200/80 shadow-2xs">

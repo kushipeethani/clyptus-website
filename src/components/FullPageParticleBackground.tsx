@@ -135,32 +135,24 @@ export const FullPageParticleBackground: React.FC = () => {
 
           // Filter out transparent and white background pixels
           if (a > 50 && (r < 240 || g < 240 || b < 240)) {
-            const xRatio = x / sampleW;
-            const yRatio = y / sampleH;
+            const isOrange = r > 170 && b < 100;
 
-            // Exclude tiny subtitle area from particle sampling
-            const isInSubtitleArea = yRatio >= 0.67 && xRatio >= 0.48;
+            // Exclude tiny subtitle area from particle sampling so particles focus 100% on making "Clyptus" crisp
+            const isInSubtitleArea = !isOrange && y >= sampleH * 0.67 && x >= sampleW * 0.48;
             if (isInSubtitleArea) {
               continue;
             }
 
-            // Official Clyptus Brandmark Color Mapping:
-            // - Outer C-arc AND capital letter 'C' of "Clyptus" = 100% Vibrant Orange (#f15a24)
-            // - Letters "lyptus" ('l', 'y', 'p', 't', 'u', 's') = 100% Royal Blue (#2b3990)
-            const isLyptusBlueText = xRatio >= 0.44 && yRatio >= 0.30 && yRatio <= 0.68 && r < 140;
+            const pt = {
+              xRatio: x / sampleW,
+              yRatio: y / sampleH,
+              color: isOrange ? '#f15a24' : '#2b3990',
+            };
 
-            if (isLyptusBlueText) {
-              blueTextValid.push({
-                xRatio,
-                yRatio,
-                color: '#2b3990', // Royal blue for "lyptus"
-              });
+            if (isOrange) {
+              orangeValid.push(pt);
             } else {
-              orangeValid.push({
-                xRatio,
-                yRatio,
-                color: '#f15a24', // Vibrant orange for outer C-arc & letter 'C'
-              });
+              blueTextValid.push(pt);
             }
           }
         }
@@ -220,12 +212,14 @@ export const FullPageParticleBackground: React.FC = () => {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseleave', handleMouseLeave);
 
+    let currentAssembleFactor = 0;
+
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
       // Check whether target section above FAQ is in view
       const targetEl = document.getElementById('clyptus-logo-assemble-target');
-      let assembleFactor = 0;
+      let targetAssembleFactor = 0;
       let logoBox = { x: 0, y: 0, w: 0, h: 0 };
 
       if (targetEl) {
@@ -234,13 +228,17 @@ export const FullPageParticleBackground: React.FC = () => {
         const centerY = rect.top + rect.height * 0.52;
         const screenCenterY = vh * 0.5;
         const distFromCenter = Math.abs(centerY - screenCenterY);
-        const maxActiveDist = vh * 0.48;
 
-        if (distFromCenter < maxActiveDist) {
-          const rawProgress = 1 - (distFromCenter / maxActiveDist);
-          assembleFactor = Math.min(1, Math.max(0, rawProgress));
-          // Smooth ease curve
-          assembleFactor = assembleFactor * assembleFactor * (3 - 2 * assembleFactor);
+        const holdRadius = vh * 0.35; // Hold 100% assembled across center 70% viewport
+        const fadeRadius = vh * 0.95; // Wide gradual falloff zone for slow dispersion
+
+        if (distFromCenter <= holdRadius) {
+          targetAssembleFactor = 1.0;
+        } else if (distFromCenter < fadeRadius) {
+          const rawProgress = 1 - ((distFromCenter - holdRadius) / (fadeRadius - holdRadius));
+          targetAssembleFactor = Math.min(1, Math.max(0, rawProgress));
+          // Gentle smooth-step curve for ultra-slow gradual dispersion
+          targetAssembleFactor = targetAssembleFactor * targetAssembleFactor * (3 - 2 * targetAssembleFactor);
         }
 
         const maxLogoW = Math.min(rect.width * 0.88, 520);
@@ -254,6 +252,10 @@ export const FullPageParticleBackground: React.FC = () => {
           h: logoH,
         };
       }
+
+      // Smooth inertia lerp for ultra-smooth, slow dispersion on scroll down
+      currentAssembleFactor += (targetAssembleFactor - currentAssembleFactor) * 0.055;
+      const assembleFactor = currentAssembleFactor;
 
       // Smooth mouse lerp
       if (mouseRef.current.active) {
