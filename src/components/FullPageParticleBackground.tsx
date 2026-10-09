@@ -283,18 +283,21 @@ export const FullPageParticleBackground: React.FC = () => {
           renderY = p.driftY + (targetY - p.driftY) * assembleFactor + wobbleY;
         }
 
-        // Interactive mouse repulsion
-        if (mouseRef.current.active) {
-          const dx = renderX - mouseRef.current.currX;
-          const dy = renderY - mouseRef.current.currY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const pushRadius = assembleFactor > 0.5 ? 130 : 160;
+        // Interactive mouse repulsion (disabled when particles are forming Clyptus)
+        if (mouseRef.current.active && assembleFactor < 0.95) {
+          const mouseFactor = 1 - Math.min(1, assembleFactor * 1.2);
+          if (mouseFactor > 0) {
+            const dx = renderX - mouseRef.current.currX;
+            const dy = renderY - mouseRef.current.currY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const pushRadius = 160;
 
-          if (dist < pushRadius && dist > 0) {
-            const force = (pushRadius - dist) / pushRadius;
-            const push = Math.pow(force, 1.2) * (assembleFactor > 0.5 ? 40 : 30);
-            renderX += (dx / dist) * push;
-            renderY += (dy / dist) * push;
+            if (dist < pushRadius && dist > 0) {
+              const force = (pushRadius - dist) / pushRadius;
+              const push = Math.pow(force, 1.2) * 30 * mouseFactor;
+              renderX += (dx / dist) * push;
+              renderY += (dy / dist) * push;
+            }
           }
         }
 
