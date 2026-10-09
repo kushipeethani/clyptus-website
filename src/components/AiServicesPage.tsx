@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { AiGalaxyParticleSection } from './AiGalaxyParticleSection';
 import { FullPageParticleBackground } from './FullPageParticleBackground';
-import { 
-  BarChart3, 
-  Workflow, 
-  Database, 
-  CheckCircle2, 
+import {
+  BarChart3,
+  Workflow,
+  Database,
+  CheckCircle2,
   Sparkles,
   Layers,
   Cpu,
@@ -43,7 +43,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
     }
 
     // IntersectionObserver for steps and catalog (keep permanently visible once intersected)
-    const observerOptions = { 
+    const observerOptions = {
       threshold: 0.05,
       rootMargin: '0px 0px 100px 0px'
     };
@@ -334,9 +334,8 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
             {/* Category 1: Generative AI & Automation */}
-            <div className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 hover:shadow-lg hover:-translate-y-1 hover:border-sky-400 ${
-              isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-            }`}>
+            <div className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 hover:shadow-lg hover:-translate-y-1 hover:border-sky-400 ${isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+              }`}>
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 mb-6">
                   <Sparkles className="w-6 h-6" />
@@ -354,9 +353,8 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             </div>
 
             {/* Category 2: Data Services & Platforms */}
-            <div className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 delay-150 hover:shadow-lg hover:-translate-y-1 hover:border-indigo-400 ${
-              isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-            }`}>
+            <div className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 delay-150 hover:shadow-lg hover:-translate-y-1 hover:border-indigo-400 ${isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+              }`}>
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-6">
                   <Layers className="w-6 h-6" />
@@ -374,9 +372,8 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             </div>
 
             {/* Category 3: Model Types */}
-            <div className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 delay-300 hover:shadow-lg hover:-translate-y-1 hover:border-purple-400 ${
-              isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-            }`}>
+            <div className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 delay-300 hover:shadow-lg hover:-translate-y-1 hover:border-purple-400 ${isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+              }`}>
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 mb-6">
                   <LineChart className="w-6 h-6" />
@@ -432,12 +429,11 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
               ][idx];
 
               return (
-                <div 
+                <div
                   key={st.step}
                   style={{ transitionDelay: `${isVisibleSteps ? delayMs : 0}ms` }}
-                  className={`group relative z-10 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 ease-out transform ${stepStyles.hoverBorder} hover:shadow-xl hover:-translate-y-2 cursor-pointer ${
-                    isVisibleSteps ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-12 scale-95'
-                  }`}
+                  className={`group relative z-10 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 ease-out transform ${stepStyles.hoverBorder} hover:shadow-xl hover:-translate-y-2 cursor-pointer ${isVisibleSteps ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-12 scale-95'
+                    }`}
                 >
                   <div>
                     <div className="flex items-center justify-between mb-4">
@@ -572,8 +568,8 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
       {/* ---------------------------------------------------- */}
       {/* CLYPTUS BRANDMARK BACKGROUND PARTICLE ASSEMBLE STAGE */}
       {/* ---------------------------------------------------- */}
-      <section 
-        id="clyptus-logo-assemble-target" 
+      <section
+        id="clyptus-logo-assemble-target"
         className="relative z-10 py-12 sm:py-16 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto overflow-hidden bg-transparent select-none text-center"
       >
         {/* Target Stage Box where background particles coalesce into the official Clyptus logo */}

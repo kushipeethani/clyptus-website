@@ -46,7 +46,7 @@ export const AiGalaxyParticleSection: React.FC<AiGalaxyParticleSectionProps> = (
       const totalScrollable = rect.height - windowHeight;
       const currentPos = -rect.top;
       const progress = Math.max(0, Math.min(1, currentPos / Math.max(1, totalScrollable)));
-      
+
       scrollProgressRef.current = progress;
       setScrollProgress(progress);
     };
@@ -67,16 +67,16 @@ export const AiGalaxyParticleSection: React.FC<AiGalaxyParticleSectionProps> = (
     let height = 0;
 
     const CHARCOAL_SHADES = [
-      '#000000', // Pitch-black
-      '#09090b', // Ultra-deep zinc
-      '#18181b', // Deep charcoal
-      '#27272a', // Charcoal grey
-      '#3f3f46', // Mid-charcoal
-      '#52525b', // Slate grey particle
+      '#E74905', // Pitch-black
+      '#31338E', // Ultra-deep zinc
+      '#E74905', // Deep charcoal
+      '#31338E', // Charcoal grey
+      '#E74905', // Mid-charcoal
+      '#E74905', // Slate grey particle
     ];
 
     const NUM_ARMS = 4;
-    const PARTICLE_COUNT = 1500;
+    const PARTICLE_COUNT = 2500;
     const particles: Particle[] = [];
 
     // Initialize spiral galaxy particles once on mount
@@ -90,9 +90,12 @@ export const AiGalaxyParticleSection: React.FC<AiGalaxyParticleSectionProps> = (
       const charcoalHex = CHARCOAL_SHADES[Math.floor(Math.random() * CHARCOAL_SHADES.length)];
       const wobbleOffset = Math.random() * Math.PI * 2;
       const wobbleSpeed = 0.02 + Math.random() * 0.03;
-      const initialSide = Math.random() < 0.5 ? -1 : 1;
-      const screenTargetX = -0.35 + Math.random() * 1.7; // Spreads wide from -35% to 135% screen width
-      const screenTargetY = -0.35 + Math.random() * 1.7; // Spreads wide from -35% to 135% screen height
+      const isLeftSide = i % 2 === 0;
+      const initialSide = isLeftSide ? -1 : 1;
+      const screenTargetX = isLeftSide 
+        ? -0.30 + Math.random() * 0.45  // Left side target: -30% to +15% screen width
+        : 0.85 + Math.random() * 0.45;   // Right side target: 85% to 130% screen width
+      const screenTargetY = -0.35 + Math.random() * 1.7; // Spreads wide along screen height
 
       particles.push({
         armIndex,
@@ -221,8 +224,8 @@ export const AiGalaxyParticleSection: React.FC<AiGalaxyParticleSectionProps> = (
         }
 
         // Particle Alpha calculation (retains ~45% background visibility when text appears)
-        const outerFade = p.distanceRatio > 0.85 
-          ? (1 - p.distanceRatio) / 0.15 
+        const outerFade = p.distanceRatio > 0.85
+          ? (1 - p.distanceRatio) / 0.15
           : (p.distanceRatio < 0.1 ? p.distanceRatio / 0.1 : 1);
 
         const scrollAlphaFade = Math.max(0.45, 1 - Math.min(0.55, progress * 0.7));
@@ -275,7 +278,7 @@ export const AiGalaxyParticleSection: React.FC<AiGalaxyParticleSectionProps> = (
   const textScale = 0.9 + Math.min(0.1, textOpacity * 0.1);
 
   return (
-    <div 
+    <div
       ref={sectionRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -283,15 +286,15 @@ export const AiGalaxyParticleSection: React.FC<AiGalaxyParticleSectionProps> = (
     >
       {/* Sticky Full-Viewport Frozen Canvas Container */}
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden bg-white">
-        
+
         {/* 4K Ultra-Crisp Monochrome Spiral Galaxy Canvas */}
-        <canvas 
-          ref={canvasRef} 
-          className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none" 
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
         />
 
         {/* CENTER REVEALED TYPOGRAPHY ("AI SERVICES") */}
-        <div 
+        <div
           className="relative z-10 max-w-4xl mx-auto px-6 text-center flex flex-col items-center gap-6 pointer-events-auto transition-all duration-300 ease-out"
           style={{
             opacity: textOpacity,

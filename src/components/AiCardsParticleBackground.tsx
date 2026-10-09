@@ -46,12 +46,12 @@ export const AiCardsParticleBackground: React.FC<AiCardsParticleBackgroundProps>
     let height = 0;
 
     const CHARCOAL_SHADES = [
-      '#000000', // Pitch-black
-      '#09090b', // Ultra-deep zinc
-      '#18181b', // Deep charcoal
-      '#27272a', // Charcoal grey
-      '#3f3f46', // Mid-charcoal
-      '#52525b', // Slate grey particle
+      '#E74905', // Pitch-black
+      '#31338E', // Ultra-deep zinc
+      '#E74905', // Deep charcoal
+      '#31338E', // Charcoal grey
+      '#E74905', // Mid-charcoal
+      '#E74905', // Slate grey particle
     ];
 
     const PARTICLE_COUNT = 850;
@@ -200,9 +200,9 @@ export const AiCardsParticleBackground: React.FC<AiCardsParticleBackgroundProps>
   }, []);
 
   return (
-    <canvas 
-      ref={canvasRef} 
-      className="absolute inset-0 w-full h-full pointer-events-none z-0 block" 
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none z-0 block"
     />
   );
 };

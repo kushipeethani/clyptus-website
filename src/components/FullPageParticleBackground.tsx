@@ -42,15 +42,15 @@ export const FullPageParticleBackground: React.FC = () => {
     let height = window.innerHeight;
 
     const CHARCOAL_SHADES = [
-      '#000000', // Pitch-black
-      '#09090b', // Ultra-deep zinc
-      '#18181b', // Deep charcoal
-      '#27272a', // Charcoal grey
-      '#3f3f46', // Mid-charcoal
-      '#52525b', // Slate grey particle
+      '#E74905', // Pitch-black
+      '#2a2dc5ff', // Ultra-deep zinc
+      '#E74905', // Deep charcoal
+      '#31338E', // Charcoal grey
+      '#E74905', // Mid-charcoal
+      '#E74905', // Slate grey particle
     ];
 
-    const AMBIENT_COUNT = 95;
+    const AMBIENT_COUNT = 550;
     const TOTAL_PARTICLE_COUNT = 2500;
     const particles: Particle[] = [];
     let logoPoints: LogoSamplePoint[] = [];
@@ -73,9 +73,15 @@ export const FullPageParticleBackground: React.FC = () => {
     resize();
     window.addEventListener('resize', resize);
 
-    // Initialize 2500 total particles (first 95 ambient, remainder active only during logo assembly)
+    // Initialize 2500 total particles (first 95 ambient on left/right sides, remainder active only during logo assembly)
     for (let i = 0; i < TOTAL_PARTICLE_COUNT; i++) {
-      const driftX = Math.random() * width;
+      // Position ambient background particles exclusively on left side (0% - 15% width) or right side (85% - 100% width)
+      const isLeftSide = i % 2 === 0;
+      const sideMarginRatio = 0.15;
+      const driftX = isLeftSide 
+        ? Math.random() * (width * sideMarginRatio) 
+        : width * (1 - sideMarginRatio) + Math.random() * (width * sideMarginRatio);
+
       const driftY = Math.random() * height;
 
       const driftAngle = Math.random() * Math.PI * 2;
@@ -269,9 +275,16 @@ export const FullPageParticleBackground: React.FC = () => {
         p.driftX += p.vx;
         p.driftY += p.vy;
 
-        // Wrap around viewport edges
-        if (p.driftX < -50) p.driftX = width + 50;
-        if (p.driftX > width + 50) p.driftX = -50;
+        // Wrap around viewport side margins (keeping center 15%-85% clear of background dots)
+        const isLeftSide = idx % 2 === 0;
+        const sideMarginRatio = 0.15;
+        if (isLeftSide) {
+          if (p.driftX < -30) p.driftX = width * sideMarginRatio;
+          if (p.driftX > width * sideMarginRatio) p.driftX = -30;
+        } else {
+          if (p.driftX < width * (1 - sideMarginRatio)) p.driftX = width + 30;
+          if (p.driftX > width + 30) p.driftX = width * (1 - sideMarginRatio);
+        }
         if (p.driftY < -50) p.driftY = height + 50;
         if (p.driftY > height + 50) p.driftY = -50;
 
@@ -324,12 +337,12 @@ export const FullPageParticleBackground: React.FC = () => {
         // Calculate opacity: 95 ambient background particles stay at ~45%; remaining 2405 fade in smoothly during assembly
         let currentAlpha = 0;
         if (idx < AMBIENT_COUNT) {
-          currentAlpha = assembleFactor > 0 
-            ? Math.min(1, p.alpha + assembleFactor * 0.5) 
+          currentAlpha = assembleFactor > 0
+            ? Math.min(1, p.alpha + assembleFactor * 0.5)
             : p.alpha;
         } else {
-          currentAlpha = assembleFactor > 0 
-            ? Math.pow(assembleFactor, 1.1) * (0.75 + (idx % 10) * 0.025) 
+          currentAlpha = assembleFactor > 0
+            ? Math.pow(assembleFactor, 1.1) * (0.75 + (idx % 10) * 0.025)
             : 0;
         }
 
@@ -399,9 +412,9 @@ export const FullPageParticleBackground: React.FC = () => {
   }, []);
 
   return (
-    <canvas 
-      ref={canvasRef} 
-      className="fixed inset-0 w-full h-full pointer-events-none z-0 block" 
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 w-full h-full pointer-events-none z-0 block"
     />
   );
 };
