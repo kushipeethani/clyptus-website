@@ -223,7 +223,25 @@ export const FullPageParticleBackground: React.FC = () => {
       if (targetEl) {
         const rect = targetEl.getBoundingClientRect();
         const vh = height;
-        const navHeight = 80; // Top navigation bar height threshold
+        const navBarHeight = 80; // Fixed navbar height threshold
+
+        if (rect.top > navBarHeight) {
+          // Assembly phase: smoothly assemble as section enters from bottom
+          const assembleStart = vh * 0.88;
+          const assembleEnd = vh * 0.35;
+          if (rect.top < assembleStart) {
+            const progress = (assembleStart - rect.top) / (assembleStart - assembleEnd);
+            assembleFactor = Math.min(1, Math.max(0, progress));
+            // Smooth ease curve for assembly
+            assembleFactor = assembleFactor * assembleFactor * (3 - 2 * assembleFactor);
+          }
+        } else {
+          // Dispersion phase: STAGE TRIPPED ONLY AFTER SECTION TOUCHES NAV BAR (rect.top <= 80px)
+          const disperseDistance = 320;
+          const disperseProgress = Math.min(1, Math.max(0, (navBarHeight - rect.top) / disperseDistance));
+          // Smooth ease curve for dispersion
+          assembleFactor = 1 - (disperseProgress * disperseProgress * (3 - 2 * disperseProgress));
+        }
 
         const maxLogoW = Math.min(rect.width * 0.88, 520);
         const logoW = Math.max(280, maxLogoW);
@@ -235,35 +253,6 @@ export const FullPageParticleBackground: React.FC = () => {
           w: logoW,
           h: logoH,
         };
-
-        // Assembly ONLY starts when target section is comfortably inside viewport (rect.top <= vh * 0.82)
-        // Reaches 1.0 (fully assembled) gradually as section moves to center (rect.top <= vh * 0.35)
-        // HOLDS 1.0 (fully assembled logo) as logo moves up towards navbar
-        // Dispersion ONLY starts after top of logo particles touch the top navbar (logoBox.y <= navHeight)
-        const assembleStart = vh * 0.82;
-        const assembleComplete = vh * 0.35;
-        const disperseStart = navHeight + 25; // Touch point at top navbar
-        const disperseEnd = -logoH * 0.75;
-
-        if (rect.top > assembleStart) {
-          // Not started combining yet - particles stay 100% in background drift
-          assembleFactor = 0;
-        } else if (rect.top > assembleComplete) {
-          // Smooth, gradual assembling phase
-          const raw = 1 - (rect.top - assembleComplete) / (assembleStart - assembleComplete);
-          assembleFactor = Math.min(1, Math.max(0, raw));
-        } else if (logoBox.y > disperseStart) {
-          // Hold 100% fully assembled state while moving up screen towards navbar
-          assembleFactor = 1.0;
-        } else {
-          // Dispersion phase: ONLY starts after top logo particles touch the navbar!
-          const raw = (logoBox.y - disperseEnd) / (disperseStart - disperseEnd);
-          assembleFactor = Math.min(1, Math.max(0, raw));
-        }
-
-        // Smooth cubic ease-in-out curve for fluid, graceful particle motion
-        assembleFactor = Math.min(1, Math.max(0, assembleFactor));
-        assembleFactor = assembleFactor * assembleFactor * (3 - 2 * assembleFactor);
       }
 
       // Smooth mouse lerp
