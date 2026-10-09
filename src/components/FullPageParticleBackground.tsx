@@ -229,16 +229,15 @@ export const FullPageParticleBackground: React.FC = () => {
         const screenCenterY = vh * 0.5;
         const distFromCenter = Math.abs(centerY - screenCenterY);
 
-        const holdRadius = vh * 0.35; // Hold 100% assembled across center 70% viewport
-        const fadeRadius = vh * 0.95; // Wide gradual falloff zone for slow dispersion
+        const holdRadius = vh * 0.65; // Hold 100% assembled across 130% viewport height
+        const fadeRadius = vh * 1.6;  // Extended fade zone for ultra-long hold
 
         if (distFromCenter <= holdRadius) {
           targetAssembleFactor = 1.0;
         } else if (distFromCenter < fadeRadius) {
           const rawProgress = 1 - ((distFromCenter - holdRadius) / (fadeRadius - holdRadius));
-          targetAssembleFactor = Math.min(1, Math.max(0, rawProgress));
-          // Gentle smooth-step curve for ultra-slow gradual dispersion
-          targetAssembleFactor = targetAssembleFactor * targetAssembleFactor * (3 - 2 * targetAssembleFactor);
+          // High plateau curve so logo stays mostly intact even near the edges
+          targetAssembleFactor = Math.min(1, Math.max(0, Math.pow(rawProgress, 0.4)));
         }
 
         const maxLogoW = Math.min(rect.width * 0.88, 520);
