@@ -212,12 +212,14 @@ export const FullPageParticleBackground: React.FC = () => {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseleave', handleMouseLeave);
 
+    let smoothedAssembleFactor = 0;
+
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
       // Check whether target section above FAQ is in view
       const targetEl = document.getElementById('clyptus-logo-assemble-target');
-      let assembleFactor = 0;
+      let targetAssembleFactor = 0;
       let logoBox = { x: 0, y: 0, w: 0, h: 0 };
 
       if (targetEl) {
@@ -226,15 +228,16 @@ export const FullPageParticleBackground: React.FC = () => {
         const centerY = rect.top + rect.height * 0.52;
         const screenCenterY = vh * 0.5;
         const distFromCenter = Math.abs(centerY - screenCenterY);
-        const maxActiveDist = vh * 0.48;
+        // Extended active scroll distance (0.85vh) for much slower, gradual assembly speed when scrolling down
+        const maxActiveDist = vh * 0.85;
 
         if (distFromCenter < maxActiveDist) {
           const rawProgress = 1 - (distFromCenter / maxActiveDist);
-          // Hold plateau: 100% assembly is reached earlier and holds steady across a generous scroll range
+          // Hold plateau: 100% assembly holds steady across a generous scroll range
           const holdThreshold = 0.65;
           const scaledProgress = Math.min(1, Math.max(0, rawProgress / holdThreshold));
           // Smooth ease curve
-          assembleFactor = scaledProgress * scaledProgress * (3 - 2 * scaledProgress);
+          targetAssembleFactor = scaledProgress * scaledProgress * (3 - 2 * scaledProgress);
         }
 
         const maxLogoW = Math.min(rect.width * 0.88, 520);
@@ -248,6 +251,10 @@ export const FullPageParticleBackground: React.FC = () => {
           h: logoH,
         };
       }
+
+      // Smooth lerp assembly factor (0.06 factor) for gentle, fluid particle motion as user scrolls
+      smoothedAssembleFactor += (targetAssembleFactor - smoothedAssembleFactor) * 0.06;
+      const assembleFactor = Math.abs(smoothedAssembleFactor) < 0.0001 ? 0 : smoothedAssembleFactor;
 
       // Smooth mouse lerp
       if (mouseRef.current.active) {
