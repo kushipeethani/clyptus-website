@@ -135,24 +135,33 @@ export const FullPageParticleBackground: React.FC = () => {
 
           // Filter out transparent and white background pixels
           if (a > 50 && (r < 240 || g < 240 || b < 240)) {
-            const isOrange = r > 170 && b < 100;
+            const xRatio = x / sampleW;
+            const yRatio = y / sampleH;
 
-            // Exclude tiny subtitle area from particle sampling so particles focus 100% on making "Clyptus" crisp
-            const isInSubtitleArea = !isOrange && y >= sampleH * 0.67 && x >= sampleW * 0.48;
+            // Exclude tiny subtitle area from particle sampling
+            const isInSubtitleArea = yRatio >= 0.67 && xRatio >= 0.48;
             if (isInSubtitleArea) {
               continue;
             }
 
-            const pt = {
-              xRatio: x / sampleW,
-              yRatio: y / sampleH,
-              color: isOrange ? '#f15a24' : '#2b3990',
-            };
+            // Region classification:
+            // Text region (word "Clyptus", starting with letter C at xRatio >= 0.37) is royal blue (#2b3990)
+            // Outer C-arc (left crescent ring & tail) is 100% pure vibrant orange (#f15a24) - zero blue particles!
+            const isTextRegion = xRatio >= 0.37 && yRatio >= 0.30 && yRatio <= 0.68;
+            const isOrangePixel = r > 160 && b < 110;
 
-            if (isOrange) {
-              orangeValid.push(pt);
+            if (isTextRegion && !isOrangePixel) {
+              blueTextValid.push({
+                xRatio,
+                yRatio,
+                color: '#2b3990', // Royal blue for word "Clyptus"
+              });
             } else {
-              blueTextValid.push(pt);
+              orangeValid.push({
+                xRatio,
+                yRatio,
+                color: '#f15a24', // 100% pure vibrant orange for outer C-arc
+              });
             }
           }
         }
