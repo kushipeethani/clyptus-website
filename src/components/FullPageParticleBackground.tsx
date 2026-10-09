@@ -236,17 +236,20 @@ export const FullPageParticleBackground: React.FC = () => {
           h: logoH,
         };
 
-        // Assembly starts when section enters viewport from bottom (rect.top <= vh)
-        // Reaches 1.0 (fully assembled) when centered
+        // Assembly ONLY starts when target section is comfortably inside viewport (rect.top <= vh * 0.82)
+        // Reaches 1.0 (fully assembled) gradually as section moves to center (rect.top <= vh * 0.35)
         // HOLDS 1.0 (fully assembled logo) as logo moves up towards navbar
         // Dispersion ONLY starts after top of logo particles touch the top navbar (logoBox.y <= navHeight)
-        const assembleStart = vh;
-        const assembleComplete = vh * 0.45;
+        const assembleStart = vh * 0.82;
+        const assembleComplete = vh * 0.35;
         const disperseStart = navHeight + 25; // Touch point at top navbar
         const disperseEnd = -logoH * 0.75;
 
-        if (rect.top > assembleComplete) {
-          // Assembling phase as user scrolls into section
+        if (rect.top > assembleStart) {
+          // Not started combining yet - particles stay 100% in background drift
+          assembleFactor = 0;
+        } else if (rect.top > assembleComplete) {
+          // Smooth, gradual assembling phase
           const raw = 1 - (rect.top - assembleComplete) / (assembleStart - assembleComplete);
           assembleFactor = Math.min(1, Math.max(0, raw));
         } else if (logoBox.y > disperseStart) {
@@ -258,7 +261,7 @@ export const FullPageParticleBackground: React.FC = () => {
           assembleFactor = Math.min(1, Math.max(0, raw));
         }
 
-        // Smooth cubic ease curve for seamless transitions
+        // Smooth cubic ease-in-out curve for fluid, graceful particle motion
         assembleFactor = Math.min(1, Math.max(0, assembleFactor));
         assembleFactor = assembleFactor * assembleFactor * (3 - 2 * assembleFactor);
       }
