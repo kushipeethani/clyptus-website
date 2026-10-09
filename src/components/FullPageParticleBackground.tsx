@@ -51,7 +51,7 @@ export const FullPageParticleBackground: React.FC = () => {
     ];
 
     const AMBIENT_COUNT = 95;
-    const TOTAL_PARTICLE_COUNT = 5500;
+    const TOTAL_PARTICLE_COUNT = 2500;
     const particles: Particle[] = [];
     let logoPoints: LogoSamplePoint[] = [];
     let isLogoLoaded = false;
@@ -73,7 +73,7 @@ export const FullPageParticleBackground: React.FC = () => {
     resize();
     window.addEventListener('resize', resize);
 
-    // Initialize 5500 total particles (first 95 ambient, remainder active only during logo assembly)
+    // Initialize 2500 total particles (first 95 ambient, remainder active only during logo assembly)
     for (let i = 0; i < TOTAL_PARTICLE_COUNT; i++) {
       const driftX = Math.random() * width;
       const driftY = Math.random() * height;
@@ -137,7 +137,7 @@ export const FullPageParticleBackground: React.FC = () => {
           if (a > 50 && (r < 240 || g < 240 || b < 240)) {
             const isOrange = r > 170 && b < 100;
 
-            // Exclude tiny subtitle area from particle sampling so particles focus 100% on making "Clyptus" crisp & gapless
+            // Exclude tiny subtitle area from particle sampling so particles focus 100% on making "Clyptus" crisp
             const isInSubtitleArea = !isOrange && y >= sampleH * 0.67 && x >= sampleW * 0.48;
             if (isInSubtitleArea) {
               continue;
@@ -146,7 +146,7 @@ export const FullPageParticleBackground: React.FC = () => {
             const pt = {
               xRatio: x / sampleW,
               yRatio: y / sampleH,
-              color: isOrange ? '#f15a24' : '#2b3990',
+              color: '#000000',
             };
 
             if (isOrange) {
@@ -159,12 +159,12 @@ export const FullPageParticleBackground: React.FC = () => {
       }
 
       const totalTarget = TOTAL_PARTICLE_COUNT;
-      const blueTargetCount = 3600; // 3,600 particles reserved for ultra-dense, gapless "Clyptus" lettering
-      const orangeTargetCount = totalTarget - blueTargetCount; // 1,900 particles for solid orange C-arc
+      const blueTargetCount = 1600;
+      const orangeTargetCount = totalTarget - blueTargetCount; // 900
 
       logoPoints = [];
 
-      // 1. Allocate 3600 particles to blue text ("Clyptus") for gapless solid typography
+      // 1. Allocate 1600 particles to blue text ("Clyptus" & subtext) for maximum legibility
       if (blueTextValid.length > 0) {
         for (let i = 0; i < blueTargetCount; i++) {
           const pIdx = Math.floor((i / blueTargetCount) * blueTextValid.length);
@@ -172,7 +172,7 @@ export const FullPageParticleBackground: React.FC = () => {
         }
       }
 
-      // 2. Allocate 1900 particles to orange C-arc
+      // 2. Allocate 900 particles to orange C-arc
       if (orangeValid.length > 0) {
         for (let i = 0; i < orangeTargetCount; i++) {
           const pIdx = Math.floor((i / orangeTargetCount) * orangeValid.length);
@@ -228,8 +228,8 @@ export const FullPageParticleBackground: React.FC = () => {
         const centerY = rect.top + rect.height * 0.52;
         const screenCenterY = vh * 0.5;
         const distFromCenter = Math.abs(centerY - screenCenterY);
-        // Active scroll distance set to 0.85vh (85% of screen height) for gradual assembly speed
-        const maxActiveDist = vh * 0.85;
+        // Active scroll distance set to 0.70vh (70% of screen height) for balanced assembly speed
+        const maxActiveDist = vh * 0.70;
 
         if (distFromCenter < maxActiveDist) {
           const rawProgress = 1 - (distFromCenter / maxActiveDist);
@@ -310,13 +310,13 @@ export const FullPageParticleBackground: React.FC = () => {
           }
         }
 
-        // Determine particle color (smooth transition from charcoal to logo colors: orange/blue)
+        // Determine particle color (smooth transition from charcoal to pure crisp black)
         let particleColor = p.charcoalHex;
         if (assembleFactor > 0.2 && isLogoLoaded) {
-          particleColor = p.logoColor;
+          particleColor = '#000000';
         }
 
-        // Calculate opacity: 95 ambient background particles stay at ~45%; remaining 5405 fade in smoothly during assembly
+        // Calculate opacity: 95 ambient background particles stay at ~45%; remaining 2405 fade in smoothly during assembly
         let currentAlpha = 0;
         if (idx < AMBIENT_COUNT) {
           currentAlpha = assembleFactor > 0 
@@ -324,14 +324,14 @@ export const FullPageParticleBackground: React.FC = () => {
             : p.alpha;
         } else {
           currentAlpha = assembleFactor > 0 
-            ? Math.pow(assembleFactor, 1.1) * (0.80 + (idx % 10) * 0.02) 
+            ? Math.pow(assembleFactor, 1.1) * (0.75 + (idx % 10) * 0.025) 
             : 0;
         }
 
         if (currentAlpha > 0.01) {
-          // Increase size for blue text particles so typography is gapless, thick, and bold
-          const isBlueText = p.logoColor === '#2b3990';
-          const sizeBoost = isBlueText ? 0.60 : 0.35;
+          // Increase size for text particles so typography is thick and legible
+          const isTextParticle = idx >= AMBIENT_COUNT && idx < AMBIENT_COUNT + 1600;
+          const sizeBoost = isTextParticle ? 0.45 : 0.25;
           const currentSize = p.size * (1 + assembleFactor * sizeBoost);
 
           ctx.save();
@@ -349,27 +349,27 @@ export const FullPageParticleBackground: React.FC = () => {
           }
           ctx.restore();
 
-          if (assembleFactor > 0.45 && isBlueText) {
+          if (assembleFactor > 0.5 && isTextParticle) {
             activeTextParticles.push({ x: renderX, y: renderY });
           }
         }
       });
 
-      // Draw subtle connecting strokes between adjacent blue text particles for gapless, razor-sharp typography
-      if (assembleFactor > 0.50 && activeTextParticles.length > 0) {
+      // Draw subtle connecting strokes between adjacent text particles for razor-sharp typography
+      if (assembleFactor > 0.55 && activeTextParticles.length > 0) {
         ctx.save();
-        ctx.lineWidth = 1.3;
-        ctx.strokeStyle = '#2b3990';
-        ctx.globalAlpha = Math.min(0.55, (assembleFactor - 0.50) * 1.2);
+        ctx.lineWidth = 1.1;
+        ctx.strokeStyle = '#000000';
+        ctx.globalAlpha = Math.min(0.45, (assembleFactor - 0.55) * 1.1);
 
         for (let i = 0; i < activeTextParticles.length; i += 3) {
           const p1 = activeTextParticles[i];
-          for (let j = i + 1; j < Math.min(i + 14, activeTextParticles.length); j++) {
+          for (let j = i + 1; j < Math.min(i + 12, activeTextParticles.length); j++) {
             const p2 = activeTextParticles[j];
             const dx = p1.x - p2.x;
             const dy = p1.y - p2.y;
             const distSq = dx * dx + dy * dy;
-            if (distSq < 225) { // dist < 15px
+            if (distSq < 144) { // dist < 12px
               ctx.beginPath();
               ctx.moveTo(p1.x, p1.y);
               ctx.lineTo(p2.x, p2.y);
