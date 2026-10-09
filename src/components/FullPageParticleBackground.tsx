@@ -223,24 +223,18 @@ export const FullPageParticleBackground: React.FC = () => {
       if (targetEl) {
         const rect = targetEl.getBoundingClientRect();
         const vh = height;
-        const navBarHeight = 80; // Fixed navbar height threshold
+        const centerY = rect.top + rect.height * 0.52;
+        const screenCenterY = vh * 0.5;
+        const distFromCenter = Math.abs(centerY - screenCenterY);
+        const maxActiveDist = vh * 0.48;
 
-        if (rect.top > navBarHeight) {
-          // Assembly phase: smoothly assemble as section enters from bottom
-          const assembleStart = vh * 0.88;
-          const assembleEnd = vh * 0.35;
-          if (rect.top < assembleStart) {
-            const progress = (assembleStart - rect.top) / (assembleStart - assembleEnd);
-            assembleFactor = Math.min(1, Math.max(0, progress));
-            // Smooth ease curve for assembly
-            assembleFactor = assembleFactor * assembleFactor * (3 - 2 * assembleFactor);
-          }
-        } else {
-          // Dispersion phase: STAGE TRIPPED ONLY AFTER SECTION TOUCHES NAV BAR (rect.top <= 80px)
-          const disperseDistance = 320;
-          const disperseProgress = Math.min(1, Math.max(0, (navBarHeight - rect.top) / disperseDistance));
-          // Smooth ease curve for dispersion
-          assembleFactor = 1 - (disperseProgress * disperseProgress * (3 - 2 * disperseProgress));
+        if (distFromCenter < maxActiveDist) {
+          const rawProgress = 1 - (distFromCenter / maxActiveDist);
+          // Hold plateau: 100% assembly is reached earlier and holds steady across a generous scroll range
+          const holdThreshold = 0.65;
+          const scaledProgress = Math.min(1, Math.max(0, rawProgress / holdThreshold));
+          // Smooth ease curve
+          assembleFactor = scaledProgress * scaledProgress * (3 - 2 * scaledProgress);
         }
 
         const maxLogoW = Math.min(rect.width * 0.88, 520);
