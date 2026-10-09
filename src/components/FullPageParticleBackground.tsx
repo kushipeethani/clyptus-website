@@ -228,8 +228,8 @@ export const FullPageParticleBackground: React.FC = () => {
         const centerY = rect.top + rect.height * 0.52;
         const screenCenterY = vh * 0.5;
         const distFromCenter = Math.abs(centerY - screenCenterY);
-        // Extended active scroll distance (0.85vh) for much slower, gradual assembly speed when scrolling down
-        const maxActiveDist = vh * 0.85;
+        // Active scroll distance set to 0.70vh (70% of screen height) for balanced assembly speed
+        const maxActiveDist = vh * 0.70;
 
         if (distFromCenter < maxActiveDist) {
           const rawProgress = 1 - (distFromCenter / maxActiveDist);
