@@ -11,6 +11,7 @@ interface SpiralSliderProps {
 export const SpiralSlider: React.FC<SpiralSliderProps> = ({
   cards,
   config,
+  onSelectCard,
 }) => {
   const [rotationOffset, setRotationOffset] = useState<number>(0);
   const targetOffsetRef = useRef<number>(0);
@@ -312,10 +313,13 @@ export const SpiralSlider: React.FC<SpiralSliderProps> = ({
                   onClick={(e) => {
                     e.stopPropagation();
                     snapToCard(i);
+                    if (onSelectCard) {
+                      onSelectCard(card);
+                    }
                   }}
                 >
                   <div 
-                    className={`group relative w-full h-full rounded-xl overflow-hidden border backdrop-blur-md transition-all duration-300 flex flex-col justify-between p-3 ${
+                    className={`group relative w-full h-full rounded-xl overflow-hidden border backdrop-blur-md transition-all duration-300 flex flex-col justify-between p-3 cursor-pointer ${
                       isFocal 
                         ? 'border-sky-500 bg-white/95 shadow-[0_15px_35px_rgba(2,132,199,0.25)] ring-2 ring-sky-400/50' 
                         : isFront 

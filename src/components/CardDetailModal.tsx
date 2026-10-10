@@ -1,18 +1,18 @@
 import React from 'react';
 import type { SliderCard } from '../data/sliderData';
-import { X, Sparkles, Download, Layers, Activity, Code, Heart } from 'lucide-react';
+import { X, ShieldCheck, Zap, Cpu, Database, Heart } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface CardDetailModalProps {
   card: SliderCard | null;
   onClose: () => void;
-  onOpenCodeModal: (card: SliderCard) => void;
+  onNavigate?: (page: string) => void;
 }
 
 export const CardDetailModal: React.FC<CardDetailModalProps> = ({
   card,
   onClose,
-  onOpenCodeModal,
+  onNavigate,
 }) => {
   const [liked, setLiked] = React.useState(false);
 
@@ -30,11 +30,21 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
     }
   };
 
+  const handleGoToDetails = () => {
+    if (onNavigate && card.pageRoute) {
+      onNavigate(card.pageRoute);
+      onClose();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-fadeIn">
       <div className="relative w-full max-w-3xl rounded-3xl bg-white border border-slate-200 shadow-2xl overflow-hidden text-slate-900 flex flex-col md:flex-row">
         {/* Left Side: Large Media Preview */}
-        <div className="relative md:w-1/2 h-64 md:h-auto overflow-hidden group">
+        <div 
+          onClick={handleGoToDetails}
+          className="relative md:w-1/2 h-64 md:h-auto overflow-hidden group cursor-pointer"
+        >
           <img
             src={card.imageUrl}
             alt={card.title}
@@ -49,7 +59,10 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           </div>
 
           <button
-            onClick={handleLike}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLike();
+            }}
             className={`absolute bottom-4 left-4 p-2.5 rounded-full border backdrop-blur-md transition-all shadow-sm ${
               liked 
                 ? 'bg-pink-500 text-white border-pink-400 shadow-[0_4px_15px_rgba(236,72,153,0.4)]' 
@@ -60,7 +73,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
           </button>
         </div>
 
-        {/* Right Side: Details & Metrics */}
+        {/* Right Side: Details & Practice Highlights */}
         <div className="md:w-1/2 p-6 md:p-8 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
@@ -69,13 +82,17 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
               </span>
               <button
                 onClick={onClose}
-                className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-800 transition-all"
+                className="p-1.5 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-all"
+                title="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <h2 className="text-2xl font-extrabold text-slate-900 mt-1 tracking-tight">
+            <h2 
+              onClick={handleGoToDetails}
+              className="text-2xl font-extrabold text-slate-900 mt-1 tracking-tight cursor-pointer hover:text-sky-600 transition-colors"
+            >
               {card.title}
             </h2>
 
@@ -83,37 +100,45 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
               {card.description}
             </p>
 
-            {/* Performance & Spec Grid */}
+            {/* Dynamic Authentic Practice Highlights Grid */}
             <div className="grid grid-cols-2 gap-3 mt-6">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                <Activity className="w-5 h-5 text-sky-600" />
+                <Database className="w-5 h-5 text-sky-600 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase font-mono">Frame Rate</div>
-                  <div className="text-sm font-bold text-slate-900">{card.stats.fps} FPS Smooth</div>
+                  <div className="text-[10px] text-slate-500 uppercase font-mono">
+                    {card.pageRoute === 'SAP' ? 'Digital Core' : card.pageRoute === 'AI' ? 'Accuracy Rate' : 'Talent Capacity'}
+                  </div>
+                  <div className="text-xs font-bold text-slate-900 line-clamp-1">{card.stats.depth}</div>
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                <Layers className="w-5 h-5 text-indigo-600" />
+                <Cpu className="w-5 h-5 text-indigo-600 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase font-mono">Depth Cue</div>
-                  <div className="text-sm font-bold text-slate-900">{card.stats.depth}</div>
+                  <div className="text-[10px] text-slate-500 uppercase font-mono">
+                    {card.pageRoute === 'SAP' ? 'Specialization' : card.pageRoute === 'AI' ? 'Framework' : 'Sourcing SLA'}
+                  </div>
+                  <div className="text-xs font-bold text-slate-900 line-clamp-1">{card.stats.vertices}</div>
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                <Sparkles className="w-5 h-5 text-amber-500" />
+                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase font-mono">Complexity</div>
-                  <div className="text-sm font-bold text-slate-900">{card.stats.vertices} Poly</div>
+                  <div className="text-[10px] text-slate-500 uppercase font-mono">
+                    {card.pageRoute === 'SAP' ? 'Global Reach' : card.pageRoute === 'AI' ? 'Deployment' : 'Vetting Standard'}
+                  </div>
+                  <div className="text-xs font-bold text-slate-900 line-clamp-1">{card.stats.downloads}</div>
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-                <Download className="w-5 h-5 text-emerald-600" />
+                <Zap className="w-5 h-5 text-amber-500 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase font-mono">Downloads</div>
-                  <div className="text-sm font-bold text-slate-900">{card.stats.downloads}</div>
+                  <div className="text-[10px] text-slate-500 uppercase font-mono">Support SLA</div>
+                  <div className="text-xs font-bold text-slate-900 line-clamp-1">
+                    {card.pageRoute === 'SAP' ? '24/7 Managed AMS' : card.pageRoute === 'AI' ? 'Real-Time Pipelines' : '48-Hr Shortlist'}
+                  </div>
                 </div>
               </div>
             </div>
@@ -128,21 +153,16 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3 mt-6 pt-4 border-t border-slate-200">
-            <button
-              onClick={() => onOpenCodeModal(card)}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs transition-all shadow-[0_4px_15px_rgba(2,132,199,0.3)]"
-            >
-              <Code className="w-4 h-4" /> Get Prompt & Code
-            </button>
-
-            <button
-              onClick={onClose}
-              className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-all"
-            >
-              Close
-            </button>
+          {/* Direct Navigation Action Button */}
+          <div className="flex flex-col gap-2 mt-6 pt-4 border-t border-slate-200">
+            {card.pageRoute && onNavigate && (
+              <button
+                onClick={handleGoToDetails}
+                className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-extrabold text-xs transition-all shadow-[0_4px_15px_rgba(2,132,199,0.3)] hover:scale-[1.01]"
+              >
+                View Full {card.pageRoute === 'AI' ? 'AI Innovations' : card.pageRoute === 'SAP' ? 'SAP Enterprise' : 'IT Recruiting'} Page Details →
+              </button>
+            )}
           </div>
         </div>
       </div>

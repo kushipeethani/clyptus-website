@@ -17,11 +17,12 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const navLinks = [
     'Home',
-    'About',
-    'Careers',
     'Projects',
-    'HR Policies',
     'Industries',
+    'About',
+    'HR Policies',
+    'Blogs',
+    'Careers',
     'Contact'
   ];
 

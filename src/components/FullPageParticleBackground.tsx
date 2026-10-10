@@ -51,7 +51,7 @@ export const FullPageParticleBackground: React.FC = () => {
     ];
 
     const AMBIENT_COUNT = 550;
-    const TOTAL_PARTICLE_COUNT = 2500;
+    const TOTAL_PARTICLE_COUNT = 5000;
     const particles: Particle[] = [];
     let logoPoints: LogoSamplePoint[] = [];
     let isLogoLoaded = false;
@@ -73,9 +73,8 @@ export const FullPageParticleBackground: React.FC = () => {
     resize();
     window.addEventListener('resize', resize);
 
-    // Initialize 2500 total particles (first 95 ambient on left/right sides, remainder active only during logo assembly)
+    // Initialize 5000 total particles
     for (let i = 0; i < TOTAL_PARTICLE_COUNT; i++) {
-      // Position ambient background particles exclusively on left side (0% - 15% width) or right side (85% - 100% width)
       const isLeftSide = i % 2 === 0;
       const sideMarginRatio = 0.15;
       const driftX = isLeftSide 
@@ -90,7 +89,7 @@ export const FullPageParticleBackground: React.FC = () => {
       const vy = Math.sin(driftAngle) * speed;
 
       const size = Math.random() < 0.22 ? Math.random() * 2.3 + 1.2 : Math.random() * 1.3 + 0.55;
-      const alpha = i < AMBIENT_COUNT ? (0.42 + Math.random() * 0.06) : 0; // ~45% ambient opacity for background
+      const alpha = i < AMBIENT_COUNT ? (0.42 + Math.random() * 0.06) : 0;
       const charcoalHex = CHARCOAL_SHADES[Math.floor(Math.random() * CHARCOAL_SHADES.length)];
       const wobbleOffset = Math.random() * Math.PI * 2;
       const wobbleSpeed = 0.02 + Math.random() * 0.03;
@@ -130,7 +129,7 @@ export const FullPageParticleBackground: React.FC = () => {
       const orangeValid: LogoSamplePoint[] = [];
       const blueTextValid: LogoSamplePoint[] = [];
 
-      // Scan logo pixels and separate orange arc vs blue text for balanced particle density
+      // Dense pixel sampling: Scan every single non-white, non-transparent pixel
       for (let y = 0; y < sampleH; y += 1) {
         for (let x = 0; x < sampleW; x += 1) {
           const idx = (y * sampleW + x) * 4;
@@ -139,11 +138,10 @@ export const FullPageParticleBackground: React.FC = () => {
           const b = data[idx + 2];
           const a = data[idx + 3];
 
-          // Filter out transparent and white background pixels
-          if (a > 50 && (r < 240 || g < 240 || b < 240)) {
-            const isOrange = r > 170 && b < 100;
+          // Include all colored pixels to fill edges & interiors completely
+          if (a > 30 && (r < 242 || g < 242 || b < 242)) {
+            const isOrange = r > 165 && b < 110;
 
-            // Exclude tiny subtitle area from particle sampling so particles focus 100% on making "Clyptus" crisp
             const isInSubtitleArea = !isOrange && y >= sampleH * 0.67 && x >= sampleW * 0.48;
             if (isInSubtitleArea) {
               continue;
@@ -165,24 +163,23 @@ export const FullPageParticleBackground: React.FC = () => {
       }
 
       const totalTarget = TOTAL_PARTICLE_COUNT;
-      const blueTargetCount = 1600;
-      const orangeTargetCount = totalTarget - blueTargetCount; // 900
+      const blueTargetCount = 3100;
+      const orangeTargetCount = totalTarget - blueTargetCount; // 1900
 
       logoPoints = [];
 
-      // 1. Allocate 1600 particles to blue text ("Clyptus" & subtext) for maximum legibility
+      // Uniform random sampling across blue text & orange arc to eliminate linear stripe gaps
       if (blueTextValid.length > 0) {
         for (let i = 0; i < blueTargetCount; i++) {
-          const pIdx = Math.floor((i / blueTargetCount) * blueTextValid.length);
-          logoPoints.push(blueTextValid[pIdx]);
+          const randIdx = Math.floor(Math.random() * blueTextValid.length);
+          logoPoints.push(blueTextValid[randIdx]);
         }
       }
 
-      // 2. Allocate 900 particles to orange C-arc
       if (orangeValid.length > 0) {
         for (let i = 0; i < orangeTargetCount; i++) {
-          const pIdx = Math.floor((i / orangeTargetCount) * orangeValid.length);
-          logoPoints.push(orangeValid[pIdx]);
+          const randIdx = Math.floor(Math.random() * orangeValid.length);
+          logoPoints.push(orangeValid[randIdx]);
         }
       }
 
@@ -233,17 +230,21 @@ export const FullPageParticleBackground: React.FC = () => {
         const vh = height;
         const centerY = rect.top + rect.height * 0.52;
         const screenCenterY = vh * 0.5;
-        const distFromCenter = Math.abs(centerY - screenCenterY);
-        // Active scroll distance set to 0.70vh (70% of screen height) for balanced assembly speed
-        const maxActiveDist = vh * 0.70;
-
-        if (distFromCenter < maxActiveDist) {
-          const rawProgress = 1 - (distFromCenter / maxActiveDist);
-          // Hold plateau: 100% assembly holds steady across a generous scroll range
-          const holdThreshold = 0.65;
-          const scaledProgress = Math.min(1, Math.max(0, rawProgress / holdThreshold));
-          // Smooth ease curve
+        // Asymmetric entrance & early dispersion curve:
+        // Entrance: Assembles smoothly as target approaches center from bottom
+        // Exit: Disperses EARLY as target moves past center (long before going out of window)
+        if (centerY >= screenCenterY) {
+          const distBelow = centerY - screenCenterY;
+          const maxEntranceDist = vh * 0.55;
+          const rawProgress = Math.max(0, Math.min(1, 1 - distBelow / maxEntranceDist));
+          const scaledProgress = Math.min(1, rawProgress / 0.70);
           targetAssembleFactor = scaledProgress * scaledProgress * (3 - 2 * scaledProgress);
+        } else {
+          // As soon as scrolling continues past center, disperse early!
+          const distAbove = screenCenterY - centerY;
+          const maxExitDist = vh * 0.18; // Disperses within 18% vh past center, while still fully on screen
+          const rawProgress = Math.max(0, Math.min(1, 1 - distAbove / maxExitDist));
+          targetAssembleFactor = rawProgress * rawProgress * (3 - 2 * rawProgress);
         }
 
         const maxLogoW = Math.min(rect.width * 0.88, 520);
@@ -258,8 +259,8 @@ export const FullPageParticleBackground: React.FC = () => {
         };
       }
 
-      // Ultra-smooth lerp assembly factor (0.045 factor) for silky fluid motion as user scrolls
-      smoothedAssembleFactor += (targetAssembleFactor - smoothedAssembleFactor) * 0.045;
+      // Responsive lerp assembly factor (0.075 factor) for instant responsive dispersion
+      smoothedAssembleFactor += (targetAssembleFactor - smoothedAssembleFactor) * 0.075;
       const assembleFactor = Math.abs(smoothedAssembleFactor) < 0.0001 ? 0 : smoothedAssembleFactor;
 
       // Smooth mouse lerp
@@ -268,7 +269,7 @@ export const FullPageParticleBackground: React.FC = () => {
         mouseRef.current.currY += (mouseRef.current.targetY - mouseRef.current.currY) * 0.1;
       }
 
-      const activeTextParticles: { x: number; y: number }[] = [];
+      const activeTextParticles: { x: number; y: number; color: string }[] = [];
 
       particles.forEach((p, idx) => {
         // Continuous organic drifting
@@ -288,11 +289,15 @@ export const FullPageParticleBackground: React.FC = () => {
         if (p.driftY < -50) p.driftY = height + 50;
         if (p.driftY > height + 50) p.driftY = -50;
 
-        p.wobbleOffset += p.wobbleSpeed;
-        // Fade out wobble completely during assembly so particles lock steadily into target coordinates without jitter
-        const wobbleMag = Math.max(0, 1 - assembleFactor * 1.5) * 10;
-        const wobbleX = Math.sin(p.wobbleOffset) * wobbleMag;
-        const wobbleY = Math.cos(p.wobbleOffset * 0.85) * wobbleMag;
+        p.wobbleOffset += p.wobbleSpeed * (1 + assembleFactor * 0.2);
+
+        // Tight micro-movement & subtle floating shimmer when 100% fully formed
+        const ambientWobble = (1 - assembleFactor) * 3.5;
+        const formedMicroWobble = assembleFactor * (0.5 + (idx % 5) * 0.12); // Subtle tight micro-shimmer (0.5px - 1.0px)
+        const wobbleMag = ambientWobble + formedMicroWobble;
+
+        const wobbleX = Math.sin(p.wobbleOffset + idx * 0.05) * wobbleMag;
+        const wobbleY = Math.cos(p.wobbleOffset * 0.85 + idx * 0.08) * wobbleMag;
 
         // If assemble is active and logo is loaded, converge smoothly toward logo target coordinates
         let renderX = p.driftX + wobbleX;
@@ -310,21 +315,18 @@ export const FullPageParticleBackground: React.FC = () => {
           renderY = p.driftY + (targetY - p.driftY) * easedFactor + wobbleY;
         }
 
-        // Interactive mouse repulsion (disabled when particles are forming Clyptus)
-        if (mouseRef.current.active && assembleFactor < 0.95) {
-          const mouseFactor = 1 - Math.min(1, assembleFactor * 1.2);
-          if (mouseFactor > 0) {
-            const dx = renderX - mouseRef.current.currX;
-            const dy = renderY - mouseRef.current.currY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const pushRadius = 160;
+        // Interactive mouse ripple repulsion (subtle, tight push when formed)
+        if (mouseRef.current.active) {
+          const dx = renderX - mouseRef.current.currX;
+          const dy = renderY - mouseRef.current.currY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const pushRadius = assembleFactor > 0.5 ? 90 : 140;
 
-            if (dist < pushRadius && dist > 0) {
-              const force = (pushRadius - dist) / pushRadius;
-              const push = Math.pow(force, 1.2) * 30 * mouseFactor;
-              renderX += (dx / dist) * push;
-              renderY += (dy / dist) * push;
-            }
+          if (dist < pushRadius && dist > 0) {
+            const force = (pushRadius - dist) / pushRadius;
+            const push = Math.pow(force, 1.2) * (assembleFactor > 0.5 ? 6 : 22);
+            renderX += (dx / dist) * push;
+            renderY += (dy / dist) * push;
           }
         }
 
@@ -347,10 +349,11 @@ export const FullPageParticleBackground: React.FC = () => {
         }
 
         if (currentAlpha > 0.01) {
-          // Increase size for blue text particles so typography is thick and legible
+          // Increase size for blue text particles + add subtle breathing pulse wave when formed
           const isBlueText = p.logoColor === '#2b3990';
           const sizeBoost = isBlueText ? 0.45 : 0.25;
-          const currentSize = p.size * (1 + assembleFactor * sizeBoost);
+          const pulseWave = Math.sin(p.wobbleOffset * 1.2 + idx * 0.1) * 0.06 * assembleFactor;
+          const currentSize = p.size * (1 + assembleFactor * sizeBoost + pulseWave);
 
           ctx.save();
           ctx.globalAlpha = currentAlpha;
@@ -367,31 +370,34 @@ export const FullPageParticleBackground: React.FC = () => {
           }
           ctx.restore();
 
-          if (assembleFactor > 0.5 && isBlueText) {
-            activeTextParticles.push({ x: renderX, y: renderY });
+          if (assembleFactor > 0.4) {
+            activeTextParticles.push({ x: renderX, y: renderY, color: particleColor });
           }
         }
       });
 
-      // Draw subtle connecting strokes between adjacent blue text particles for razor-sharp typography
-      if (assembleFactor > 0.55 && activeTextParticles.length > 0) {
+      // Draw dense connecting mesh lines between adjacent particles to fill all gaps & white spaces completely
+      if (assembleFactor > 0.45 && activeTextParticles.length > 0) {
         ctx.save();
-        ctx.lineWidth = 1.1;
-        ctx.strokeStyle = '#2b3990';
-        ctx.globalAlpha = Math.min(0.45, (assembleFactor - 0.55) * 1.1);
+        ctx.lineWidth = 1.3;
 
-        for (let i = 0; i < activeTextParticles.length; i += 3) {
+        for (let i = 0; i < activeTextParticles.length; i += 2) {
           const p1 = activeTextParticles[i];
-          for (let j = i + 1; j < Math.min(i + 12, activeTextParticles.length); j++) {
+          ctx.strokeStyle = p1.color;
+          ctx.globalAlpha = Math.min(0.55, (assembleFactor - 0.45) * 1.3);
+
+          for (let j = i + 1; j < Math.min(i + 14, activeTextParticles.length); j++) {
             const p2 = activeTextParticles[j];
-            const dx = p1.x - p2.x;
-            const dy = p1.y - p2.y;
-            const distSq = dx * dx + dy * dy;
-            if (distSq < 144) { // dist < 12px
-              ctx.beginPath();
-              ctx.moveTo(p1.x, p1.y);
-              ctx.lineTo(p2.x, p2.y);
-              ctx.stroke();
+            if (p1.color === p2.color) {
+              const dx = p1.x - p2.x;
+              const dy = p1.y - p2.y;
+              const distSq = dx * dx + dy * dy;
+              if (distSq < 225) { // dist < 15px
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+              }
             }
           }
         }

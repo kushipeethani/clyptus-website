@@ -161,7 +161,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenResourceModal 
               </li>
               <li>
                 <button 
-                  onClick={() => onOpenResourceModal?.('insights')}
+                  onClick={() => {
+                    onNavigate?.('Blogs');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   className="text-slate-400 hover:text-white transition-colors cursor-pointer"
                 >
                   Insights / Blog

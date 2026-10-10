@@ -203,11 +203,11 @@ export const ServicesBottomLeftWidget: React.FC<ServicesBottomLeftWidgetProps> =
         <button
           onClick={() => {
             if (onSelectService) {
-              onSelectService('sap');
+              onSelectService('home');
             }
           }}
           className="relative flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-sky-600 via-blue-600 to-indigo-600 text-white border-2 border-transparent shadow-[0_10px_30px_rgba(37,99,235,0.35)] group-hover/main:bg-none group-hover/main:bg-white group-hover/main:border-sky-400 group-hover/main:text-sky-600 group-hover/main:shadow-xl transition-all duration-500 z-10 active:scale-95"
-          title="Explore Clyptus Services"
+          title="Return to Home Page"
         >
           {/* Subtle Outer Pulsing Aura */}
           <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 opacity-30 group-hover/main:opacity-0 blur-md transition-opacity animate-pulse" />

@@ -57,6 +57,7 @@ export const StudioCustomizer: React.FC<StudioCustomizerProps> = ({
       imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1000&auto=format&fit=crop',
       accentColor: '#0284c7',
       tags: ['Custom Image', '3D Helix'],
+      pageRoute: 'AI',
       prompt: 'Custom user spiral card prompt.',
       stats: { fps: 60, depth: 'Z-sorted', vertices: '5.0k', downloads: '100' },
     };

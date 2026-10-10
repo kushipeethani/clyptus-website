@@ -18,6 +18,7 @@ import { CareersPage } from './components/CareersPage';
 import { IndustriesPage } from './components/IndustriesPage';
 import { ItRecruitmentPage } from './components/ItRecruitmentPage';
 import { HrPolicyPage } from './components/HrPolicyPage';
+import { BlogsPage } from './components/BlogsPage';
 import { RisingSlideCardsSection } from './components/RisingSlideCardsSection';
 import { Services3dOrbUniverse } from './components/Services3dOrbUniverse';
 import { ServicesBottomLeftWidget } from './components/ServicesBottomLeftWidget';
@@ -26,7 +27,7 @@ import { Footer } from './components/Footer';
 import { ResourceModal } from './components/ResourceModal';
 
 export function App() {
-  const [showIntro, setShowIntro] = useState<boolean>(true);
+  const [showIntro, setShowIntro] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<string>('Home');
   const [cards, setCards] = useState<SliderCard[]>(SLIDER_CARDS);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -68,7 +69,7 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-sky-500/20 selection:text-sky-800">
-      {/* Full-Screen Cinematic Intro Animation */}
+      {/* Full-Screen Cinematic Intro Animation (Disabled) */}
       {showIntro && (
         <CinematicIntro
           onComplete={() => setShowIntro(false)}
@@ -87,7 +88,7 @@ export function App() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onToggleCustomizer={() => setIsCustomizerOpen(!isCustomizerOpen)}
-        onPlayIntro={() => setShowIntro(true)}
+        onPlayIntro={() => {}}
         onOpen3dServices={() => setIs3dServicesOpen(true)}
       />
 
@@ -139,6 +140,14 @@ export function App() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           />
+        </main>
+      ) : currentPage === 'Blogs' || currentPage === 'blogs' ? (
+        /* DEDICATED BLOGS PAGE FROM FRIEND 1 */
+        <main className="w-full flex-1 flex flex-col items-center">
+          <BlogsPage onNavigateContact={() => {
+            setCurrentPage('Contact');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }} />
         </main>
       ) : currentPage === 'About' ? (
         /* DEDICATED ABOUT US PAGE */
@@ -217,13 +226,24 @@ export function App() {
 
           {/* 5 Feature Cards Animated Section + Curtain Reveal 3D Timeline */}
           <RisingSlideCardsSection />
+
+          {/* Clyptus Brandmark Particle Assembly & Early Dispersion Stage */}
+          <section
+            id="clyptus-logo-assemble-target"
+            className="relative z-10 py-16 px-4 w-full max-w-7xl mx-auto overflow-hidden bg-transparent select-none text-center"
+          >
+            <div className="relative w-full h-[360px] sm:h-[420px] mx-auto flex items-center justify-center pointer-events-auto" />
+          </section>
         </main>
       )}
 
       {/* Bottom Left White Circular Services Widget */}
       <ServicesBottomLeftWidget
         onSelectService={(serviceId) => {
-          if (serviceId === 'sap') {
+          if (serviceId === 'home' || serviceId === 'Home') {
+            setCurrentPage('Home');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else if (serviceId === 'sap') {
             setCurrentPage('SAP');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else if (serviceId === 'ai') {
@@ -308,9 +328,10 @@ export function App() {
         <CardDetailModal
           card={selectedCard}
           onClose={() => setSelectedCard(null)}
-          onOpenCodeModal={(card) => {
+          onNavigate={(page) => {
             setSelectedCard(null);
-            setCodeModalCard(card);
+            setCurrentPage(page);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         />
       )}

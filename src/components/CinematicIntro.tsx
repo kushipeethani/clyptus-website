@@ -14,6 +14,8 @@ interface Particle {
   targetY: number;
   originX: number;
   originY: number;
+  dispersedX?: number;
+  dispersedY?: number;
   color: string;
   size: number;
   delay: number;
@@ -92,6 +94,12 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({
             const originX = logicalWidth / 2 + Math.cos(angle) * distance;
             const originY = logicalHeight / 2 + Math.sin(angle) * distance;
 
+            // Outward dispersion trajectory
+            const explodeAngle = Math.random() * Math.PI * 2;
+            const explodeDist = 320 + Math.random() * 350;
+            const dispersedX = logicalWidth / 2 + Math.cos(explodeAngle) * explodeDist;
+            const dispersedY = logicalHeight / 2 + Math.sin(explodeAngle) * explodeDist;
+
             const progressRatio = x / targetLogoWidth;
             const letterDelay = isOrange ? 0.2 : 0.85 + progressRatio * 2.3;
 
@@ -102,6 +110,8 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({
               targetY: offsetY + y,
               originX,
               originY,
+              dispersedX,
+              dispersedY,
               color: isOrange ? '#EA580C' : '#2D2A85',
               size: isOrange ? 1.35 : 1.15,
               delay: letterDelay,
@@ -113,79 +123,72 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({
       const animState = {
         time: 0,
         subtitleReveal: 0,
+        dispersion: 0,
       };
 
       const tl = gsap.timeline();
 
-      // 1. Particle assembly across 3.3s
+      // 1. Particle assembly into complete logo
       tl.to(animState, {
         time: 4.0,
-        duration: 3.3,
-        ease: 'power1.out',
+        duration: 1.8,
+        ease: 'power2.out',
       });
 
-      // 2. Subtitle sweep starting directly under 'p'
+      // 2. Subtitle sweep
       tl.to(
         animState,
         {
           subtitleReveal: 1,
-          duration: 1.2,
+          duration: 0.5,
           ease: 'power2.out',
         },
-        1.9
+        0.9
       );
 
-      // 3. Instant paint swap to true master image
-      tl.add(() => {
-        isFullyLocked = true;
-        cancelAnimationFrame(animationFrameId);
-        ctx.clearRect(0, 0, logicalWidth, logicalHeight);
-        ctx.drawImage(img, offsetX, offsetY, targetLogoWidth, targetLogoHeight);
+      // 3. EXACT MOMENT LOGO IS FORMED: DISPERSION EXPLOSION STARTS AGAIN!
+      tl.to(animState, {
+        dispersion: 1,
+        duration: 0.9,
+        ease: 'power3.out',
       });
 
-      // 4. HOLD THE CRISP LOGO FOR EXACTLY 1.0 SECOND
-      tl.to({}, { duration: 1.0 });
-
-      // 5. Glow effect triggers immediately after the 1-second hold
+      // 4. Portal energy glow & smooth dissolve transition
       tl.to(
         portalGlowRef.current,
         {
           scale: 4.5,
           opacity: 1,
           filter: 'blur(30px)',
-          duration: 0.85,
+          duration: 0.7,
           ease: 'power3.in',
-        }
+        },
+        '<'
       );
 
-      // Logo blends into glow smoothly
       tl.to(
         canvasRef.current,
         {
-          scale: 1.08,
-          filter: 'blur(10px) brightness(1.3)',
           opacity: 0,
-          duration: 0.7,
+          duration: 0.6,
           ease: 'power2.in',
         },
         '<'
       );
 
-      // White flash dissolve wash
       tl.to(
         flashOverlayRef.current,
         {
           opacity: 1,
-          duration: 0.45,
+          duration: 0.4,
           ease: 'power2.in',
         },
-        '-=0.35'
+        '-=0.3'
       );
 
-      // Clean fade out into website
       tl.to(containerRef.current, {
         opacity: 0,
-        duration: 0.5,
+        duration: 0.4,
         ease: 'power2.out',
         onComplete: () => {
           onComplete();
@@ -199,21 +202,34 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({
 
         for (let i = 0; i < particles.length; i++) {
           const p = particles[i];
-          const localProgress = Math.max(0, Math.min(1, (animState.time - p.delay) / 0.75));
 
-          const eased = 1 - Math.pow(1 - localProgress, 3);
-          p.x = p.originX + (p.targetX - p.originX) * eased;
-          p.y = p.originY + (p.targetY - p.originY) * eased;
+          if (animState.dispersion > 0) {
+            // Outward Dispersion Explosion phase
+            const dispEased = Math.pow(animState.dispersion, 1.8);
+            const dX = p.dispersedX ?? (p.originX * 1.5);
+            const dY = p.dispersedY ?? (p.originY * 1.5);
+            p.x = p.targetX + (dX - p.targetX) * dispEased;
+            p.y = p.targetY + (dY - p.targetY) * dispEased;
+            ctx.globalAlpha = Math.max(0, 1 - animState.dispersion * 1.15);
+          } else {
+            // Inward Assembly phase
+            const localProgress = Math.max(0, Math.min(1, (animState.time - p.delay) / 0.75));
+            const eased = 1 - Math.pow(1 - localProgress, 3);
+            p.x = p.originX + (p.targetX - p.originX) * eased;
+            p.y = p.originY + (p.targetY - p.originY) * eased;
+            ctx.globalAlpha = 1.0;
+          }
 
-          if (localProgress > 0) {
+          if (p.x >= 0 && p.y >= 0) {
             ctx.fillStyle = p.color;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, p.size * (1 + animState.dispersion * 0.5), 0, Math.PI * 2);
             ctx.fill();
           }
         }
+        ctx.globalAlpha = 1.0;
 
-        if (animState.subtitleReveal > 0) {
+        if (animState.subtitleReveal > 0 && animState.dispersion === 0) {
           ctx.save();
           ctx.beginPath();
           const clipX = offsetX + subtitleStartX;

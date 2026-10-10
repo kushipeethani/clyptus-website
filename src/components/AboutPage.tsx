@@ -285,9 +285,69 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
 
 
       {/* ---------------------------------------------------- */}
+      {/* EXECUTIVE LEADERSHIP TEAM                            */}
+      {/* ---------------------------------------------------- */}
+      <section id="leadership" className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-white border-b border-slate-200/80">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-xs font-mono font-extrabold text-blue-600 uppercase tracking-widest block mb-2">
+              LEADERSHIP &amp; EXECUTIVE TEAM
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+              Meet Our CEO &amp; Leadership
+            </h2>
+            <p className="text-sm text-slate-600 font-medium mt-3">
+              Guided by vision, integrity, and deep enterprise expertise to drive global digital transformation.
+            </p>
+          </div>
+
+          {/* CEO Card Container */}
+          <div className="max-w-4xl mx-auto p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border border-slate-800 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center gap-8 lg:gap-12">
+            
+            {/* Soft Ambient Glow Behind Photo */}
+            <div className="absolute top-0 left-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
+
+            {/* CEO Photo Column */}
+            <div className="relative shrink-0 w-48 h-48 sm:w-56 sm:h-56 rounded-2xl overflow-hidden border-2 border-blue-500/40 shadow-xl shadow-blue-500/10">
+              <img
+                src="/ceo_vamsi_krishna.png"
+                alt="Vamsi Krishna - Chief Executive Officer"
+                className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+
+            {/* CEO Details Column */}
+            <div className="flex-1 text-center md:text-left z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-400 text-[11px] font-mono font-extrabold tracking-widest uppercase mb-3">
+                <Award className="w-3.5 h-3.5 text-blue-400" />
+                <span>FOUNDER &amp; CHIEF EXECUTIVE OFFICER</span>
+              </div>
+
+              <h3 className="text-2xl sm:text-4xl font-black tracking-tight text-white mb-2">
+                Vamsi Krishna
+              </h3>
+              
+              <p className="text-sm text-blue-400 font-bold font-mono mb-4">
+                Chief Executive Officer &amp; Founder
+              </p>
+
+              <p className="text-sm text-slate-300 font-medium leading-relaxed mb-6">
+                Vamsi Krishna leads Clyptus Software Solutions with a strategic commitment to enterprise excellence. Under his guidance, Clyptus has grown into a trusted SAP ERP, AI intelligent engineering, and specialized IT talent partner for global enterprises across the USA, UAE, and India.
+              </p>
+
+              <blockquote className="p-4 rounded-xl bg-slate-800/80 border-l-4 border-blue-500 text-xs text-slate-300 italic font-medium">
+                &ldquo;At Clyptus, our mission is to build practical, enterprise-scale technology solutions that solve real business challenges with velocity, integrity, and operational excellence.&rdquo;
+              </blockquote>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------- */}
       {/* WHY CLYPTUS? VALUE PROPOSITION                       */}
       {/* ---------------------------------------------------- */}
-      <section id="leadership" className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-slate-100/80">
+      <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-slate-100/80">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs font-mono font-extrabold text-blue-600 uppercase tracking-widest block mb-2">

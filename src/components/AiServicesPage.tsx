@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { AiGalaxyParticleSection } from './AiGalaxyParticleSection';
 import { FullPageParticleBackground } from './FullPageParticleBackground';
+import { ScrollAnimatedCard } from './ScrollAnimatedCard';
 import {
   BarChart3,
   Workflow,
@@ -25,13 +26,7 @@ interface AiServicesPageProps {
 }
 
 export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContact }) => {
-  const [isVisibleSteps, setIsVisibleSteps] = useState(true);
-  const [isVisibleCatalog, setIsVisibleCatalog] = useState(true);
-
-  const stepsRef = useRef<HTMLDivElement>(null);
-  const catalogRef = useRef<HTMLDivElement>(null);
-
-  // Set Page Meta Title & Description & Observers
+  // Set Page Meta Title & Description
   useEffect(() => {
     document.title = "AI Consulting & Development Services | Clyptus";
     const metaDesc = document.querySelector('meta[name="description"]');
@@ -41,30 +36,6 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
         'Clyptus builds generative AI, machine learning and automation solutions for enterprises, from AI assistants to predictive analytics and data platforms.'
       );
     }
-
-    // IntersectionObserver for steps and catalog (keep permanently visible once intersected)
-    const observerOptions = {
-      threshold: 0.05,
-      rootMargin: '0px 0px 100px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.target === stepsRef.current && entry.isIntersecting) {
-          setIsVisibleSteps(true);
-        }
-        if (entry.target === catalogRef.current && entry.isIntersecting) {
-          setIsVisibleCatalog(true);
-        }
-      });
-    }, observerOptions);
-
-    if (stepsRef.current) observer.observe(stepsRef.current);
-    if (catalogRef.current) observer.observe(catalogRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
   }, []);
 
   const handleContactClick = () => {
@@ -259,7 +230,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
           </p>
         </div>
 
-        {/* 3 Interactive Cards Grid (Clean 3-Column Layout) */}
+        {/* 3 Interactive Cards Grid (Clean 3-Column Layout with Scroll IN/OUT Animation) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
           {aiServicesList.map((srv, idx) => {
             const IconComp = srv.icon;
@@ -282,8 +253,9 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             }
 
             return (
-              <div
+              <ScrollAnimatedCard
                 key={srv.number}
+                staggerIndex={idx}
                 className={`group relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-2xl hover:-translate-y-2 ${hoverBorder} transition-all duration-300 flex flex-col justify-between overflow-hidden`}
               >
                 <div>
@@ -308,7 +280,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
                     {srv.description}
                   </p>
                 </div>
-              </div>
+              </ScrollAnimatedCard>
             );
           })}
         </div>
@@ -318,9 +290,9 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
       {/* ---------------------------------------------------- */}
       {/* FULL SERVICES & DATA PLATFORMS CATALOG               */}
       {/* ---------------------------------------------------- */}
-      <section ref={catalogRef} className="relative z-10 py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-transparent overflow-hidden">
+      <section className="relative z-10 py-20 sm:py-28 px-4 sm:px-6 lg:px-10 bg-transparent overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-700 transform ${isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="text-center max-w-3xl mx-auto mb-16">
             <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
               COMPLETE PORTFOLIO
             </span>
@@ -334,8 +306,10 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
             {/* Category 1: Generative AI & Automation */}
-            <div className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 hover:shadow-lg hover:-translate-y-1 hover:border-sky-400 ${isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-              }`}>
+            <ScrollAnimatedCard 
+              staggerIndex={0}
+              className="relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between hover:shadow-xl hover:-translate-y-2 hover:border-sky-400 transition-all duration-300"
+            >
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 mb-6">
                   <Sparkles className="w-6 h-6" />
@@ -350,11 +324,13 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
                   ))}
                 </ul>
               </div>
-            </div>
+            </ScrollAnimatedCard>
 
             {/* Category 2: Data Services & Platforms */}
-            <div className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 delay-150 hover:shadow-lg hover:-translate-y-1 hover:border-indigo-400 ${isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-              }`}>
+            <ScrollAnimatedCard 
+              staggerIndex={1}
+              className="relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between hover:shadow-xl hover:-translate-y-2 hover:border-indigo-400 transition-all duration-300"
+            >
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-6">
                   <Layers className="w-6 h-6" />
@@ -369,11 +345,13 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
                   ))}
                 </ul>
               </div>
-            </div>
+            </ScrollAnimatedCard>
 
             {/* Category 3: Model Types */}
-            <div className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 delay-300 hover:shadow-lg hover:-translate-y-1 hover:border-purple-400 ${isVisibleCatalog ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-              }`}>
+            <ScrollAnimatedCard 
+              staggerIndex={2}
+              className="relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between hover:shadow-xl hover:-translate-y-2 hover:border-purple-400 transition-all duration-300"
+            >
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 mb-6">
                   <LineChart className="w-6 h-6" />
@@ -388,7 +366,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
                   ))}
                 </ul>
               </div>
-            </div>
+            </ScrollAnimatedCard>
           </div>
         </div>
       </section>
@@ -397,8 +375,8 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
       {/* ---------------------------------------------------- */}
       {/* HOW AN AI PROJECT RUNS (5 DELIVERY STAGES)           */}
       {/* ---------------------------------------------------- */}
-      <section ref={stepsRef} className="relative z-10 py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto overflow-hidden bg-transparent">
-        <div className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-700 transform ${isVisibleSteps ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+      <section className="relative z-10 py-20 sm:py-28 px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto overflow-hidden bg-transparent">
+        <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-mono font-extrabold text-sky-600 uppercase tracking-widest block mb-2">
             DELIVERY METHODOLOGY
           </span>
@@ -417,7 +395,6 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 relative z-10">
             {projectSteps.map((st, idx) => {
               const StepIcon = st.icon;
-              const delayMs = idx * 130;
 
               // Vibrant 5-step palette
               const stepStyles = [
@@ -429,11 +406,10 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
               ][idx];
 
               return (
-                <div
+                <ScrollAnimatedCard
                   key={st.step}
-                  style={{ transitionDelay: `${isVisibleSteps ? delayMs : 0}ms` }}
-                  className={`group relative z-10 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-700 ease-out transform ${stepStyles.hoverBorder} hover:shadow-xl hover:-translate-y-2 cursor-pointer ${isVisibleSteps ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-12 scale-95'
-                    }`}
+                  staggerIndex={idx}
+                  className={`group relative z-10 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between transition-all duration-300 transform ${stepStyles.hoverBorder} hover:shadow-xl hover:-translate-y-2 cursor-pointer`}
                 >
                   <div>
                     <div className="flex items-center justify-between mb-4">
@@ -453,7 +429,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
                   <div className="w-full h-1 rounded-full bg-slate-100 mt-5 overflow-hidden">
                     <div className={`w-0 group-hover:w-full h-full bg-gradient-to-r ${stepStyles.bar} transition-all duration-500 ease-out`} />
                   </div>
-                </div>
+                </ScrollAnimatedCard>
               );
             })}
           </div>
@@ -488,8 +464,9 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 relative z-10">
             {innovationLabAreas.map((area, idx) => (
-              <div
+              <ScrollAnimatedCard
                 key={idx}
+                staggerIndex={idx}
                 className="relative z-10 p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-purple-400 hover:shadow-md transition-all flex flex-col justify-between group"
               >
                 <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-200 text-purple-600 flex items-center justify-center mb-3 group-hover:bg-purple-600 group-hover:text-white transition-all">
@@ -499,7 +476,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
                   <h3 className="text-sm font-extrabold text-slate-900 mb-1 group-hover:text-purple-600 transition-colors">{area.name}</h3>
                   <span className="text-[10px] font-mono text-slate-500 block">{area.tag}</span>
                 </div>
-              </div>
+              </ScrollAnimatedCard>
             ))}
           </div>
         </div>
@@ -531,8 +508,9 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
             ][idx];
 
             return (
-              <div
+              <ScrollAnimatedCard
                 key={idx}
+                staggerIndex={idx}
                 className={`relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 ${sectorStyles.hoverBorder}`}
               >
                 <div>
@@ -558,7 +536,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
                     VERIFIED IMPLEMENTATION
                   </span>
                 </div>
-              </div>
+              </ScrollAnimatedCard>
             );
           })}
         </div>
@@ -592,8 +570,9 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
           {faqList.map((faq, idx) => (
-            <div
+            <ScrollAnimatedCard
               key={idx}
+              staggerIndex={idx % 2}
               className="group relative z-10 p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md hover:border-sky-300 transition-all flex flex-col justify-between"
             >
               <div>
@@ -604,7 +583,7 @@ export const AiServicesPage: React.FC<AiServicesPageProps> = ({ onNavigateContac
                   {faq.answer}
                 </p>
               </div>
-            </div>
+            </ScrollAnimatedCard>
           ))}
         </div>
       </section>
