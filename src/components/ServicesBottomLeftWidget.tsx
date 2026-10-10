@@ -71,6 +71,10 @@ export const ServicesBottomLeftWidget: React.FC<ServicesBottomLeftWidgetProps> =
       if (onSelectService) {
         onSelectService('ai');
       }
+    } else if (srv.id === 'recruiting') {
+      if (onSelectService) {
+        onSelectService('recruiting');
+      }
     } else {
       setActiveModalService(srv);
     }

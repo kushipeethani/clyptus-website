@@ -6,7 +6,7 @@ interface FooterProps {
   onOpenResourceModal?: (type: 'privacy' | 'terms' | 'cookies' | 'faqs' | 'insights') => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpen3dServices, onOpenResourceModal }) => {
+export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenResourceModal }) => {
   return (
     <footer className="w-full bg-slate-900 text-slate-300 border-t border-slate-800 font-sans">
       {/* Main Footer Container */}
@@ -78,6 +78,17 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpen3dServices, on
               <li>
                 <button 
                   onClick={() => {
+                    onNavigate?.('Projects');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }} 
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  Projects / Case Studies
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => {
                     onNavigate?.('Contact');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }} 
@@ -120,7 +131,8 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpen3dServices, on
               <li>
                 <button 
                   onClick={() => {
-                    onOpen3dServices?.();
+                    onNavigate?.('Recruiting');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }} 
                   className="text-slate-400 hover:text-purple-400 transition-colors cursor-pointer"
                 >
@@ -136,6 +148,17 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpen3dServices, on
               Resources
             </h4>
             <ul className="space-y-2.5 text-sm font-medium">
+              <li>
+                <button 
+                  onClick={() => {
+                    onNavigate?.('HR Policies');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }} 
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  HR Policies
+                </button>
+              </li>
               <li>
                 <button 
                   onClick={() => onOpenResourceModal?.('insights')}

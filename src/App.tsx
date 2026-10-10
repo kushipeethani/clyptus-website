@@ -10,11 +10,14 @@ import { CinematicIntro } from './components/CinematicIntro';
 import { AiImpactSection } from './components/AiImpactSection';
 import { MetricsCounterSection } from './components/MetricsCounterSection';
 import { ContactSection } from './components/ContactSection';
-import { SapServicesPage } from './components/SapServicesPage';
+import { SapServicesSection } from './components/SapServicesSection';
+import { SapProjectsLedger } from './components/SapProjectsLedger';
 import { AiServicesPage } from './components/AiServicesPage';
 import { AboutPage } from './components/AboutPage';
 import { CareersPage } from './components/CareersPage';
 import { IndustriesPage } from './components/IndustriesPage';
+import { ItRecruitmentPage } from './components/ItRecruitmentPage';
+import { HrPolicyPage } from './components/HrPolicyPage';
 import { RisingSlideCardsSection } from './components/RisingSlideCardsSection';
 import { Services3dOrbUniverse } from './components/Services3dOrbUniverse';
 import { ServicesBottomLeftWidget } from './components/ServicesBottomLeftWidget';
@@ -33,6 +36,24 @@ export function App() {
   const [selectedCard, setSelectedCard] = useState<SliderCard | null>(null);
   const [codeModalCard, setCodeModalCard] = useState<SliderCard | null>(null);
   const [activeResourceModal, setActiveResourceModal] = useState<'privacy' | 'terms' | 'cookies' | 'faqs' | 'insights' | null>(null);
+
+  // HR Policies Authentication State
+  const [isHrAuthenticated, setIsHrAuthenticated] = useState<boolean>(false);
+  const [authenticatedUser, setAuthenticatedUser] = useState<string | null>(null);
+
+  const handleHrLogin = (u: string, p: string): boolean => {
+    if ((u === 'Clyptus' && p === 'Clyptus@123') || (u === 'Audit' && p === 'V9#qL2!mX7@pR4')) {
+      setIsHrAuthenticated(true);
+      setAuthenticatedUser(u);
+      return true;
+    }
+    return false;
+  };
+
+  const handleHrLogout = () => {
+    setIsHrAuthenticated(false);
+    setAuthenticatedUser(null);
+  };
 
   // Filter cards by search term
   const filteredCards = useMemo(() => {
@@ -76,10 +97,15 @@ export function App() {
         <main className="w-full flex-1 flex flex-col items-center">
           <ContactSection />
         </main>
-      ) : currentPage === 'SAP' ? (
-        /* DEDICATED SAP SERVICES PAGE */
+      ) : currentPage === 'Projects' ? (
+        /* DEDICATED PROJECTS & CASE STUDIES PAGE */
         <main className="w-full flex-1 flex flex-col items-center">
-          <SapServicesPage onNavigateContact={() => {
+          <SapProjectsLedger />
+        </main>
+      ) : currentPage === 'SAP' ? (
+        /* DEDICATED SAP SERVICES PAGE WITH RICH DETAILS */
+        <main className="w-full flex-1 flex flex-col items-center">
+          <SapServicesSection onContactClick={() => {
             setCurrentPage('Contact');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }} />
@@ -91,6 +117,28 @@ export function App() {
             setCurrentPage('Contact');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }} />
+        </main>
+      ) : currentPage === 'Recruiting' || currentPage === 'IT Recruiting' ? (
+        /* DEDICATED IT RECRUITING PAGE */
+        <main className="w-full flex-1 flex flex-col items-center">
+          <ItRecruitmentPage onNavigateContact={() => {
+            setCurrentPage('Contact');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }} />
+        </main>
+      ) : currentPage === 'HR Policies' ? (
+        /* DEDICATED HR POLICIES PAGE WITH PDF DOWNLOADS & AUTH */
+        <main className="w-full flex-1 flex flex-col items-center">
+          <HrPolicyPage
+            isAuthenticated={isHrAuthenticated}
+            authenticatedUser={authenticatedUser}
+            onLogin={handleHrLogin}
+            onLogout={handleHrLogout}
+            onNavigateContact={() => {
+              setCurrentPage('Contact');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
         </main>
       ) : currentPage === 'About' ? (
         /* DEDICATED ABOUT US PAGE */
@@ -160,8 +208,9 @@ export function App() {
               } else if (serviceId === 'ai') {
                 setCurrentPage('AI');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-              } else if (serviceId === 'recruiting') {
-                setIs3dServicesOpen(true);
+              } else if (serviceId === 'recruiting' || serviceId === 'staffing') {
+                setCurrentPage('Recruiting');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }
             }}
           />
@@ -179,6 +228,9 @@ export function App() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else if (serviceId === 'ai') {
             setCurrentPage('AI');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else if (serviceId === 'recruiting' || serviceId === 'staffing') {
+            setCurrentPage('Recruiting');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }
         }}
@@ -199,6 +251,10 @@ export function App() {
           } else if (serviceId === 'ai') {
             setIs3dServicesOpen(false);
             setCurrentPage('AI');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else if (serviceId === 'recruiting' || serviceId === 'staffing') {
+            setIs3dServicesOpen(false);
+            setCurrentPage('Recruiting');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }
         }}

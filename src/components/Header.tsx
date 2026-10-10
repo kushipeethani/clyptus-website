@@ -20,8 +20,8 @@ export const Header: React.FC<HeaderProps> = ({
     'About',
     'Careers',
     'Projects',
+    'HR Policies',
     'Industries',
-    'Blogs',
     'Contact'
   ];
 
