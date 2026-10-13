@@ -51,6 +51,7 @@ export function App() {
       else if (hash === 'hr-policies' || hash === 'hrpolicies') setCurrentPage('HR Policies');
       else if (hash === 'sap') setCurrentPage('SAP');
       else if (hash === 'ai') setCurrentPage('AI');
+      else if (hash === 'recruiting' || hash === 'it-recruitment' || hash === 'itrecruitment') setCurrentPage('Recruiting');
     };
     handleHash();
     window.addEventListener('hashchange', handleHash);
@@ -299,27 +300,29 @@ export function App() {
         }}
       />
 
-      {/* Full Brand Footer */}
-      <Footer
-        onNavigate={(page, sectionId) => {
-          setCurrentPage(page);
-          if (page === 'Services') {
-            setIs3dServicesOpen(true);
-          }
-          setTimeout(() => {
-            if (sectionId) {
-              const el = document.getElementById(sectionId);
-              if (el) {
-                el.scrollIntoView({ behavior: 'smooth' });
-                return;
-              }
+      {/* Full Brand Footer - Displayed on Homepage, SAP Page, AI Page, and IT Recruiting Page */}
+      {['Home', 'SAP', 'AI', 'Recruiting', 'IT Recruiting'].includes(currentPage) && (
+        <Footer
+          onNavigate={(page, sectionId) => {
+            setCurrentPage(page);
+            if (page === 'Services') {
+              setIs3dServicesOpen(true);
             }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }, 100);
-        }}
-        onOpen3dServices={() => setIs3dServicesOpen(true)}
-        onOpenResourceModal={(type) => setActiveResourceModal(type)}
-      />
+            setTimeout(() => {
+              if (sectionId) {
+                const el = document.getElementById(sectionId);
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth' });
+                  return;
+                }
+              }
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
+          }}
+          onOpen3dServices={() => setIs3dServicesOpen(true)}
+          onOpenResourceModal={(type) => setActiveResourceModal(type)}
+        />
+      )}
 
       {/* Legal & Resource Modal (Privacy, Terms, FAQs, Insights, Cookies) */}
       <ResourceModal
