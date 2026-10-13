@@ -83,136 +83,172 @@ const getFrozenCardsProgress = (rawP: number): number => {
 
 export const RisingSlideCardsSection: React.FC = () => {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [rawScrollProgress, setRawScrollProgress] = useState<number>(0);
-  const [smoothScrollProgress, setSmoothScrollProgress] = useState<number>(0);
+  const curtainRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // RAF sampling of raw scroll track progress
+  const targetProgressRef = useRef<number>(0);
+  const currentProgressRef = useRef<number>(0);
+  const lastTimelineProgressRef = useRef<number>(0);
+  const lastCurtainOpenRef = useRef<boolean>(false);
+
+  const [isMobile, setIsMobile] = useState<boolean>(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  const [timelineState, setTimelineState] = useState<{ progress: number; isCurtainOpen: boolean }>({
+    progress: 0,
+    isCurtainOpen: false,
+  });
+
+  const totalCards = PORTFOLIO_CARDS.length;
+
+  const updateTransforms = (progress: number, mobile: boolean) => {
+    const cardWidthVw = mobile ? 100 : 50;
+    const visibleCardsCount = mobile ? 1 : 2;
+
+    const rawCardsP = Math.min(1, progress / 0.38);
+    const cardsProgress = getFrozenCardsProgress(rawCardsP);
+    const curtainOpenProgress = Math.max(0, Math.min(1, (progress - 0.38) / 0.07));
+
+    // 1. Direct GPU transform for Curtain Layer
+    if (curtainRef.current) {
+      curtainRef.current.style.transform = `translate3d(${-curtainOpenProgress * 100}%, 0, 0)`;
+    }
+
+    // 2. Direct GPU transform for Cards
+    const maxShiftVw = (totalCards - visibleCardsCount) * cardWidthVw;
+    const currentShiftVw = cardsProgress * maxShiftVw;
+
+    cardRefs.current.forEach((el, idx) => {
+      if (!el) return;
+      const cardBaseX = idx * cardWidthVw;
+      const currentPosX = cardBaseX - currentShiftVw;
+
+      // Entrance: rise up from bottom-right
+      let riseY = 0;
+      if (currentPosX > cardWidthVw) {
+        const distanceToViewportRight = currentPosX - cardWidthVw;
+        riseY = Math.min(85, distanceToViewportRight * 1.6);
+      }
+
+      // Exit: slide down to bottom-left
+      let exitY = 0;
+      let exitX = 0;
+      if (currentPosX < 0) {
+        const distancePastLeftEdge = Math.abs(currentPosX);
+        exitY = Math.min(85, distancePastLeftEdge * 1.6);
+        exitX = -distancePastLeftEdge * 0.4;
+      }
+
+      const totalX = currentPosX + exitX;
+      const totalY = riseY + exitY;
+
+      el.style.transform = `translate3d(${totalX.toFixed(2)}vw, ${totalY.toFixed(2)}vh, 0)`;
+    });
+  };
+
   useEffect(() => {
-    let ticking = false;
+    let animId: number;
 
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          if (trackRef.current) {
-            const rect = trackRef.current.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-            const totalDist = rect.height - viewportHeight;
-
-            if (totalDist > 0) {
-              const scrolled = -rect.top;
-              const p = Math.max(0, Math.min(1, scrolled / totalDist));
-              setRawScrollProgress(p);
-            }
-          }
-          ticking = false;
-        });
-        ticking = true;
+    const measureScroll = () => {
+      if (trackRef.current) {
+        const rect = trackRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const totalDist = rect.height - viewportHeight;
+        if (totalDist > 0) {
+          const scrolled = -rect.top;
+          targetProgressRef.current = Math.max(0, Math.min(1, scrolled / totalDist));
+        }
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Smooth lerp interpolation loop for silky smooth card motion
-  useEffect(() => {
-    let animId: number;
-    let current = smoothScrollProgress;
-
-    const loop = () => {
-      current += (rawScrollProgress - current) * 0.14;
-      setSmoothScrollProgress(current);
-      animId = requestAnimationFrame(loop);
+    const handleScroll = () => {
+      measureScroll();
     };
 
-    animId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(animId);
-  }, [rawScrollProgress]);
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      measureScroll();
+      updateTransforms(currentProgressRef.current, mobile);
+    };
 
-  const [windowWidth, setWindowWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1200);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleResize, { passive: true });
+    
+    measureScroll();
+    currentProgressRef.current = targetProgressRef.current;
+    updateTransforms(currentProgressRef.current, window.innerWidth < 768);
 
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const tick = () => {
+      const diff = targetProgressRef.current - currentProgressRef.current;
+
+      // Smooth damped lerp interpolation
+      if (Math.abs(diff) > 0.0001) {
+        currentProgressRef.current += diff * 0.14;
+        const p = currentProgressRef.current;
+        const mobile = window.innerWidth < 768;
+
+        updateTransforms(p, mobile);
+
+        const curtainOpenProgress = Math.max(0, Math.min(1, (p - 0.38) / 0.07));
+        const isCurtainFullyOpen = curtainOpenProgress >= 1;
+
+        const timelineDriveProgress = !isCurtainFullyOpen
+          ? 0
+          : Math.max(0, Math.min(1, (p - 0.45) / 0.55));
+
+        const progressChanged = Math.abs(timelineDriveProgress - lastTimelineProgressRef.current) >= 0.005;
+        const curtainChanged = isCurtainFullyOpen !== lastCurtainOpenRef.current;
+
+        if (progressChanged || curtainChanged) {
+          lastTimelineProgressRef.current = timelineDriveProgress;
+          lastCurtainOpenRef.current = isCurtainFullyOpen;
+          setTimelineState({ progress: timelineDriveProgress, isCurtainOpen: isCurtainFullyOpen });
+        }
+      }
+
+      animId = requestAnimationFrame(tick);
+    };
+
+    animId = requestAnimationFrame(tick);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animId);
+    };
   }, []);
 
-  const totalCards = PORTFOLIO_CARDS.length;
-  const isMobile = windowWidth < 768;
-  const cardWidthVw = isMobile ? 100 : 50;
-  const visibleCardsCount = isMobile ? 1 : 2;
-
-  // Breakdown of scroll phases over 1600vh track:
-  // Phase 1 (0.00 -> 0.38): Feature Cards Freeze & Slide Animation (Cards 1 & 2 freeze first, then 3 & 4, then 5 & 6)
-  // Phase 2 (0.38 -> 0.45): Curtain Transition - Cards Layer slides completely left (curtainOpenProgress 0 -> 1)
-  // Phase 3 (0.45 -> 1.00): 3D Milestone Timeline driving animation (generous 55% budget for a smooth drive)
-
-  const rawCardsP = Math.min(1, smoothScrollProgress / 0.38);
-  const cardsProgress = getFrozenCardsProgress(rawCardsP);
-  const curtainOpenProgress = Math.max(0, Math.min(1, (smoothScrollProgress - 0.38) / 0.07));
-  const isCurtainFullyOpen = curtainOpenProgress >= 1;
-
-  // Guarantee 3D Timeline animation stays strictly at 0 until curtain transition is 100% complete
-  const timelineDriveProgress = !isCurtainFullyOpen 
-    ? 0 
-    : Math.max(0, Math.min(1, (smoothScrollProgress - 0.45) / 0.55));
-
-  const maxShiftVw = (totalCards - visibleCardsCount) * cardWidthVw; 
-  const currentShiftVw = cardsProgress * maxShiftVw;
-
   return (
-    /* Outer Pinned Scroll Track (Shorter on mobile to prevent excessive scrolling) */
+    /* Outer Pinned Scroll Track */
     <div ref={trackRef} className={`relative w-full ${isMobile ? 'h-[600vh]' : 'h-[1600vh]'} bg-[#e9e8e3] select-none font-sans border-t border-slate-300/60`}>
       {/* Sticky Full-Screen Viewport Stage */}
       <div className="sticky top-0 w-full h-screen overflow-hidden">
         
         {/* UNDERNEATH LAYER (Z-0): 3D Journey Milestone Timeline (Revealed under curtain) */}
-        <div className={`absolute inset-0 z-0 w-full h-full ${!isCurtainFullyOpen ? 'pointer-events-none' : ''}`}>
-          <RoadTimelineSection externalProgress={timelineDriveProgress} isFrozen={!isCurtainFullyOpen} />
+        <div className={`absolute inset-0 z-0 w-full h-full ${!timelineState.isCurtainOpen ? 'pointer-events-none' : ''}`}>
+          <RoadTimelineSection externalProgress={timelineState.progress} isFrozen={!timelineState.isCurtainOpen} />
         </div>
 
-        {/* CURTAIN LAYER (Z-10): Feature Cards Layer (Slides left like a theater curtain when opened) */}
+        {/* CURTAIN LAYER (Z-10): Feature Cards Layer */}
         <div 
-          className="absolute inset-0 z-10 w-full h-full bg-[#e9e8e3] pt-16 sm:pt-24 pb-4 overflow-hidden shadow-2xl transition-transform duration-75 ease-out"
+          ref={curtainRef}
+          className="absolute inset-0 z-10 w-full h-full bg-[#e9e8e3] pt-16 sm:pt-24 pb-4 overflow-hidden shadow-2xl"
           style={{
-            transform: `translate3d(${-curtainOpenProgress * 100}%, 0, 0)`,
             willChange: 'transform',
           }}
         >
           {/* Horizontal Card Track container with 0 gap */}
           <div className="flex w-full h-full gap-0 flex-nowrap relative">
             {PORTFOLIO_CARDS.map((card, idx) => {
-              const cardBaseX = idx * cardWidthVw; // in vw
-              const currentPosX = cardBaseX - currentShiftVw; // in vw
-
-              // 1. Entrance Math: Rise UP from bottom-right (for cards entering from the right)
-              let riseY = 0; // in vh
-              if (currentPosX > cardWidthVw) {
-                const distanceToViewportRight = currentPosX - cardWidthVw;
-                riseY = Math.min(85, distanceToViewportRight * 1.6);
-              }
-
-              // 2. Exit Math: Slide DOWN to bottom-left (for cards exiting past the left edge)
-              let exitY = 0; // in vh
-              let exitX = 0; // in vw
-              if (currentPosX < 0) {
-                const distancePastLeftEdge = Math.abs(currentPosX);
-                exitY = Math.min(85, distancePastLeftEdge * 1.6); // slides down to bottom
-                exitX = -distancePastLeftEdge * 0.4; // slides further left
-              }
-
-              const totalX = currentPosX + exitX;
-              const totalY = riseY + exitY;
-
               return (
                 <div
                   key={card.id}
+                  ref={(el) => {
+                    cardRefs.current[idx] = el;
+                  }}
                   style={{
-                    transform: `translate3d(${totalX}vw, ${totalY}vh, 0)`,
                     willChange: 'transform',
                   }}
-                  className="absolute top-0 bottom-0 left-0 w-full md:w-1/2 md:min-w-[50vw] h-full shrink-0 flex flex-col justify-between p-6 sm:p-12 lg:p-16 border-r border-slate-300/40 bg-[#e9e8e3] text-slate-900 overflow-hidden group transition-all duration-75 ease-out"
+                  className="absolute top-0 bottom-0 left-0 w-full md:w-1/2 md:min-w-[50vw] h-full shrink-0 flex flex-col justify-between p-6 sm:p-12 lg:p-16 border-r border-slate-300/40 bg-[#e9e8e3] text-slate-900 overflow-hidden group"
                 >
                   {card.type === 'text' ? (
                     /* TEXT PANEL */
