@@ -24,6 +24,7 @@ import { Services3dOrbUniverse } from './components/Services3dOrbUniverse';
 import { ServicesBottomLeftWidget } from './components/ServicesBottomLeftWidget';
 import { FloatingSocialTooltip } from './components/FloatingSocialTooltip';
 import { Footer } from './components/Footer';
+import { HomeFooter } from './components/HomeFooter';
 import { ResourceModal } from './components/ResourceModal';
 
 export function App() {
@@ -300,8 +301,32 @@ export function App() {
         }}
       />
 
-      {/* Full Brand Footer - Displayed on Homepage, SAP Page, AI Page, and IT Recruiting Page */}
-      {['Home', 'SAP', 'AI', 'Recruiting', 'IT Recruiting'].includes(currentPage) && (
+      {/* Homepage Footer: Schmidt Studio Fiery Ember Glow Footer from khaja9963/clyptus-connecting */}
+      {currentPage === 'Home' && (
+        <HomeFooter
+          onNavigate={(page, sectionId) => {
+            setCurrentPage(page);
+            if (page === 'Services') {
+              setIs3dServicesOpen(true);
+            }
+            setTimeout(() => {
+              if (sectionId) {
+                const el = document.getElementById(sectionId);
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth' });
+                  return;
+                }
+              }
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
+          }}
+          onOpen3dServices={() => setIs3dServicesOpen(true)}
+          onOpenResourceModal={(type) => setActiveResourceModal(type)}
+        />
+      )}
+
+      {/* Services Pages Footer: Mountain Sunset Footer from Kbhargav098/clyptus-website-IT */}
+      {['SAP', 'AI', 'Recruiting', 'IT Recruiting'].includes(currentPage) && (
         <Footer
           onNavigate={(page, sectionId) => {
             setCurrentPage(page);
